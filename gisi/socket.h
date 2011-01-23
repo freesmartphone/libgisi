@@ -19,6 +19,8 @@
  *
  */
 
+#include <gio/gio.h>
+
 GIOChannel *g_isi_phonet_new(unsigned int ifindex);
 size_t g_isi_phonet_peek_length(GIOChannel *io);
 ssize_t g_isi_phonet_read(GIOChannel *io, void *restrict buf, size_t len,
