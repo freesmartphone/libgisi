@@ -2,7 +2,6 @@ NULL =
 
 AM_CFLAGS = \
 	    $(GLIB_CFLAGS) \
-	    -std=c99 \
 	    $(NULL)
 lib_LTLIBRARIES = \
 		  libgisi.la \
