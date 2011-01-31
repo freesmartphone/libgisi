@@ -168,6 +168,11 @@ namespace GIsi
             return (GIsiClient.SIM) new GIsi.Client( this, GIsi.PhonetSubsystem.SIM );
         }
 
+        public GIsiClient.PhoneInfo phone_info_client_create()
+        {
+            return (GIsiClient.PhoneInfo) new GIsi.Client( this, GIsi.PhonetSubsystem.PHONE_INFO );
+        }
+
         //
         // untweaked yet
         //
@@ -463,6 +468,12 @@ namespace GIsi
 [CCode (cprefix = "")]
 namespace GIsiClient
 {
+
+    /**
+     * @class SIM
+     *
+     * SIM Access
+     **/
     [Compact]
     [CCode (cname = "GIsiClient", cprefix = "SIM_", free_function = "g_isi_client_destroy", cheader_filename = "libgisi.h,sim.h")]
     public class SIM : GIsi.Client
@@ -473,5 +484,219 @@ namespace GIsiClient
         public const uint TIMEOUT;
 
         public const int MAX_IMSI_LENGTH;
+
+        [CCode (cprefix = "SIM_", cheader_filename = "sim.h")]
+        public enum IsiCause
+        {
+            SERV_NOT_AVAIL,
+            SERV_OK,
+            SERV_PIN_VERIFY_REQUIRED,
+            SERV_PIN_REQUIRED,
+            SERV_SIM_BLOCKED,
+            SERV_SIM_PERMANENTLY_BLOCKED,
+            SERV_SIM_DISCONNECTED,
+            SERV_SIM_REJECTED,
+            SERV_LOCK_ACTIVE,
+            SERV_AUTOLOCK_CLOSED,
+            SERV_AUTOLOCK_ERROR,
+            SERV_INIT_OK,
+            SERV_INIT_NOT_OK,
+            SERV_WRONG_OLD_PIN,
+            SERV_PIN_DISABLED,
+            SERV_COMMUNICATION_ERROR,
+            SERV_UPDATE_IMPOSSIBLE,
+            SERV_NO_SECRET_CODE_IN_SIM,
+            SERV_PIN_ENABLE_OK,
+            SERV_PIN_DISABLE_OK,
+            SERV_WRONG_UNBLOCKING_KEY,
+            SERV_ILLEGAL_NUMBER,
+            SERV_NOT_OK,
+            SERV_PN_LIST_ENABLE_OK,
+            SERV_PN_LIST_DISABLE_OK,
+            SERV_NO_PIN,
+            SERV_PIN_VERIFY_OK,
+            SERV_PIN_BLOCKED,
+            SERV_PIN_PERM_BLOCKED,
+            SERV_DATA_NOT_AVAIL,
+            SERV_IN_HOME_ZONE,
+            SERV_STATE_CHANGED,
+            SERV_INF_NBR_READ_OK,
+            SERV_INF_NBR_READ_NOT_OK,
+            SERV_IMSI_EQUAL,
+            SERV_IMSI_NOT_EQUAL,
+            SERV_INVALID_LOCATION,
+            SERV_STA_SIM_REMOVED,
+            SERV_SECOND_SIM_REMOVED_CS,
+            SERV_CONNECTED_INDICATION_CS,
+            SERV_SECOND_SIM_CONNECTED_CS,
+            SERV_PIN_RIGHTS_LOST_IND_CS,
+            SERV_PIN_RIGHTS_GRANTED_IND_CS,
+            SERV_INIT_OK_CS,
+            SERV_INIT_NOT_OK_CS,
+            FDN_ENABLED,
+            FDN_DISABLED,
+            SERV_INVALID_FILE,
+            SERV_DATA_AVAIL,
+            SERV_ICC_EQUAL,
+            SERV_ICC_NOT_EQUAL,
+            SERV_SIM_NOT_INITIALISED,
+            SERV_SERVICE_NOT_AVAIL,
+            SERV_FDN_STATUS_ERROR,
+            SERV_FDN_CHECK_PASSED,
+            SERV_FDN_CHECK_FAILED,
+            SERV_FDN_CHECK_DISABLED,
+            SERV_FDN_CHECK_NO_FDN_SIM,
+            STA_ISIM_AVAILEBLE_PIN_REQUIRED,
+            STA_ISIM_AVAILEBLE,
+            STA_USIM_AVAILEBLE,
+            STA_SIM_AVAILEBLE,
+            STA_ISIM_NOT_INITIALIZED,
+            STA_IMS_READY,
+            STA_APP_DATA_READ_OK,
+            STA_APP_ACTIVATE_OK,
+            STA_APP_ACTIVATE_NOT_OK,
+            SERV_NOT_DEFINED,
+            SERV_NOSERVICE,
+            SERV_NOTREADY,
+            SERV_ERROR,
+            SERV_CIPHERING_INDICATOR_DISPLAY_REQUIRED,
+            SERV_CIPHERING_INDICATOR_DISPLAY_NOT_REQUIRED,
+            SERV_FILE_NOT_AVAILABLE,
+        }
+
+        [CCode (cprefix = "SIM_PB_", cheader_filename = "sim.h")]
+        public enum Subblock
+        {
+            INFO_REQUEST,
+            STATUS,
+            LOCATION,
+            LOCATION_SEARCH,
+        }
+
+        [CCode (cprefix = "SIM_PB_", cheader_filename = "sim.h")]
+        public enum PhonebookType
+        {
+	        ADN,
+        }
+
+        [CCode (cprefix = "SIM_PB_", cheader_filename = "sim.h")]
+        public enum PhonebookTag
+        {
+            PB_ANR,
+            PB_EMAIL,
+            PB_SNE,
+        }
+
+        [CCode (cprefix = "SIM_", cheader_filename = "sim.h")]
+        public enum MessageId
+        {
+            NETWORK_INFO_REQ,
+            NETWORK_INFO_RESP,
+            IMSI_REQ_READ_IMSI,
+            IMSI_RESP_READ_IMSI,
+            SERV_PROV_NAME_REQ,
+            SERV_PROV_NAME_RESP,
+            READ_FIELD_REQ,
+            READ_FIELD_RESP,
+            SMS_REQ,
+            SMS_RESP,
+            PB_REQ_SIM_PB_READ,
+            PB_RESP_SIM_PB_READ,
+            IND,
+            COMMON_MESSAGE,
+        }
+
+        [CCode (cprefix = "", cheader_filename = "sim.h")]
+        public enum ServiceType
+        {
+            SIM_ST_PIN,
+            SIM_ST_ALL_SERVICES,
+            SIM_ST_INFO,
+            SIM_ST_CAT_SUPPORT_ENABLE,
+            SIM_ST_CAT_SUPPORT_DISABLE,
+            SIM_ST_READ_SERV_PROV_NAME,
+            SIM_PB_READ,
+            READ_IMSI,
+            READ_HPLMN,
+            READ_PARAMETER,
+            UPDATE_PARAMETER,
+            ICC,
+        }
+    }
+
+    /**
+     * @class PhoneInfo
+     *
+     * Phone Information
+     **/
+    [Compact]
+    [CCode (cname = "GIsiClient", cprefix = "INFO_", free_function = "g_isi_client_destroy", cheader_filename = "libgisi.h,info.h")]
+    public class PhoneInfo : GIsi.Client
+    {
+        private PhoneInfo();
+
+        [CCode (cname = "INFO_TIMEOUT", cheader_filename = "info.h")]
+        public const uint TIMEOUT;
+
+        public const int MAX_IMSI_LENGTH;
+
+        [CCode (cprefix = "INFO_", cheader_filename = "info.h")]
+        public enum IsiCause
+        {
+            OK,
+            FAIL,
+            NO_NUMBER,
+            NOT_SUPPORTED,
+        }
+
+        [CCode (cprefix = "INFO_", cheader_filename = "info.h")]
+        public enum MessageId
+        {
+            SERIAL_NUMBER_READ_REQ,
+            SERIAL_NUMBER_READ_RESP,
+            PP_READ_REQ,
+            PP_READ_RESP,
+            VERSION_READ_REQ,
+            VERSION_READ_RESP,
+            PRODUCT_READ_REQ,
+            PRODUCT_READ_RESP,
+            COMMON_MESSAGE,
+        }
+
+        [CCode (cprefix = "INFO_SB_", cheader_filename = "info.h")]
+        public enum Subblock
+        {
+            PRODUCT_INFO_NAME,
+            PRODUCT_INFO_MANUFACTURER,
+            SN_IMEI_PLAIN,
+            SN_IMEI_SV_TO_NET,
+            PP,
+            MCUSW_VERSION,
+        }
+
+        [CCode (cprefix = "INFO_PRODUCT_", cheader_filename = "info.h")]
+        public enum ProductInfoType
+        {
+            NAME,
+            MANUFACTURER,
+        }
+
+        [CCode (cprefix = "INFO_SN_", cheader_filename = "info.h")]
+        public enum SerialNumberType
+        {
+            IMEI_PLAIN,
+        }
+
+        [CCode (cprefix = "INFO_", cheader_filename = "info.h")]
+        public enum VersionType
+        {
+            MCUSW,
+        }
+
+        [CCode (cprefix = "INFO_PP_", cheader_filename = "info.h")]
+        public enum PPFeature
+        {
+            MAX_PDP_CONTEXTS,
+        }
     }
 }
