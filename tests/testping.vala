@@ -20,9 +20,12 @@
 using GLib;
 
 //===========================================================================
-void test_create()
+void test_modem_create()
 //===========================================================================
 {
+    var modem = new GIsi.Modem();
+    modem = new GIsi.Modem( "usbpn0" );
+    modem = new GIsi.Modem.index_new( 0 );
 }
 
 //===========================================================================
@@ -31,7 +34,7 @@ void main( string[] args )
 {
     Test.init( ref args );
 
-    Test.add_func( "/GISI/CreateModem", test_create );
+    Test.add_func( "/GISI/Modem/Create", test_modem_create );
 
     Test.run();
 }
