@@ -38,6 +38,7 @@ AC_SUBST(GLIB_EXTRA_LIBS)
 
 AC_CONFIG_FILES([
                  Makefile
+                 clients/Makefile
                  gisi/Makefile
                  data/Makefile
                  data/libgisi.pc

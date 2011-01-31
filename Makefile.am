@@ -1,10 +1,11 @@
 NULL =
 
 SUBDIRS = \
-	  gisi \
-	  data \
-	  tests \
-	  $(NULL)
+  clients \
+  gisi \
+  data \
+  tests \
+  $(NULL)
 
 EXTRA_DIST = \
 	      MAINTAINERS \
