@@ -22,6 +22,32 @@ using GLib;
 const string MODEM_IFACE = "usbpn0";
 //const string MODEM_IFACE = "phonet0";
 
+static ModemTester mt = null;
+static MainLoop loop = null;
+
+//===========================================================================
+public static void sighandler( int signum )
+{
+    Posix.signal( signum, null ); // restore original sighandler
+    loop.quit();
+}
+
+//===========================================================================
+class ModemTester
+{
+    public GIsi.Modem modem;
+
+    public ModemTester( string iface )
+    {
+        modem = new GIsi.Modem( iface );
+    }
+
+    public void onNetlinkStateChanged( GIsi.Modem modem, GIsi.PhonetLinkState st, string iface )
+    {
+        debug( "netlink status for modem %p (%s) now %s", modem, iface, st.to_string() );
+    }
+}
+
 //===========================================================================
 void test_modem_create()
 //===========================================================================
@@ -35,7 +61,13 @@ void test_modem_create()
 void test_netlink_bringup()
 //===========================================================================
 {
-    var modem = new GIsi.Modem( MODEM_IFACE );
+    mt.modem = new GIsi.Modem( MODEM_IFACE );
+    assert( mt.modem != null );
+
+    unowned GIsi.PhonetNetlink netlink = mt.modem.netlink_start( mt.onNetlinkStateChanged );
+    assert( netlink != null );
+
+    mt.modem.netlink_set_address( GIsi.PhonetDevice.SOS );
 }
 
 //===========================================================================
@@ -47,5 +79,18 @@ void main( string[] args )
     Test.add_func( "/GISI/Modem/Create", test_modem_create );
     Test.add_func( "/GISI/Netlink/Bringup", test_netlink_bringup );
 
-    Test.run();
+    mt = new ModemTester( MODEM_IFACE );
+
+    loop = new MainLoop();
+    Idle.add( () => {
+        Test.run();
+        return false;
+    } );
+
+    Posix.signal( Posix.SIGINT, sighandler );
+    Posix.signal( Posix.SIGTERM, sighandler );
+
+    debug( "=> mainloop" );
+    loop.run();
+    debug( "<= mainloop" );
 }

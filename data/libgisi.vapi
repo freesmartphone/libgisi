@@ -88,7 +88,7 @@ namespace GIsi {
         public unowned GIsi.PhonetNetlink netlink_start( GIsi.PhonetNetlinkFunc cb );
 
         [CCode (cname = "g_isi_pn_netlink_set_address", cheader_filename = "libgisi.h")]
-        public int netlink_set_address( uchar local );
+        public int netlink_set_address( GIsi.PhonetDevice local );
 
         //
         // untweaked yet
@@ -137,6 +137,11 @@ namespace GIsi {
         public void set_owner (void* owner);
     }
 
+    /**
+     * @class PhonetNetlink
+     *
+     * Access to the underlying phonet netlink functions
+     **/
     [Compact]
     [CCode (lower_case_cprefix = "g_isi_pn_netlink_", cheader_filename = "libgisi.h")]
     public class PhonetNetlink {
@@ -179,6 +184,8 @@ namespace GIsi {
         [CCode (cname = "g_isi_server_vsend")]
         public int vsend (GIsi.Message req, void* iov, size_t iovlen);
     }
+
+
     [Compact]
     [CCode (cheader_filename = "libgisi.h")]
     public class SubBlockIter {
@@ -188,18 +195,6 @@ namespace GIsi {
         public uint16 sub_blocks;
     }
 
-    [CCode (cprefix = "PN_DEV_", has_type_id = false, cheader_filename = "libgisi.h")]
-    public enum PhonetDevice {
-        PC,
-        HOST,
-        SOS
-    }
-    [CCode (cprefix = "PN_LINK_", has_type_id = false, cheader_filename = "libgisi.h")]
-    public enum PhonetLinkState {
-        REMOVED,
-        DOWN,
-        UP
-    }
 
     [Compact]
     [CCode (lower_case_cprefix = "g_isi_msg_", cheader_filename = "libgisi.h")]
@@ -209,7 +204,26 @@ namespace GIsi {
     }
 
     /**
-     * Unsorted
+     * Enums
+     **/
+
+    [CCode (cname = "uchar", cprefix = "PN_DEV_", has_type_id = false, cheader_filename = "libgisi.h")]
+    public enum PhonetDevice {
+        PC,
+        HOST,
+        SOS
+    }
+
+
+    [CCode (cprefix = "PN_LINK_", has_type_id = false, cheader_filename = "libgisi.h")]
+    public enum PhonetLinkState {
+        REMOVED,
+        DOWN,
+        UP
+    }
+
+    /**
+     * Callbacks
      **/
 
     [CCode (cheader_filename = "libgisi.h", has_target = false)]
@@ -224,6 +238,10 @@ namespace GIsi {
     public delegate void PipeErrorHandler (GIsi.Pipe pipe);
     [CCode (cheader_filename = "libgisi.h", has_target = false)]
     public delegate void PipeHandler (GIsi.Pipe pipe);
+
+    /**
+     * Consts
+     **/
 
     [CCode (cheader_filename = "libgisi.h")]
     public const int AF_PHONET;
