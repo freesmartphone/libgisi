@@ -19,13 +19,23 @@
 
 using GLib;
 
+const string MODEM_IFACE = "usbpn0";
+//const string MODEM_IFACE = "phonet0";
+
 //===========================================================================
 void test_modem_create()
 //===========================================================================
 {
     var modem = new GIsi.Modem();
-    modem = new GIsi.Modem( "usbpn0" );
+    modem = new GIsi.Modem( MODEM_IFACE );
     modem = new GIsi.Modem.index_new( 0 );
+}
+
+//===========================================================================
+void test_netlink_bringup()
+//===========================================================================
+{
+    var modem = new GIsi.Modem( MODEM_IFACE );
 }
 
 //===========================================================================
@@ -35,6 +45,7 @@ void main( string[] args )
     Test.init( ref args );
 
     Test.add_func( "/GISI/Modem/Create", test_modem_create );
+    Test.add_func( "/GISI/Netlink/Bringup", test_netlink_bringup );
 
     Test.run();
 }
