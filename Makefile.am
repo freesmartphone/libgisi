@@ -3,6 +3,7 @@ NULL =
 SUBDIRS = \
 	  gisi \
 	  data \
+	  tests \
 	  $(NULL)
 
 EXTRA_DIST = \

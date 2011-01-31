@@ -11,6 +11,11 @@ AC_GNU_SOURCE
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
 
+VALA_REQUIRED=0.11.2
+AC_PATH_PROG(VALAC, valac, valac)
+AC_SUBST(VALAC)
+m4_ifdef([AM_PROG_VALAC], [AM_PROG_VALAC([$VALA_REQUIRED])])
+
 AC_SUBST(CFLAGS)
 AC_SUBST(CPPFLAGS)
 AC_SUBST(LDFLAGS)
@@ -22,14 +27,21 @@ GLIB_REQUIRED=2.18.0
 
 PKG_CHECK_MODULES(GLIB,
                   glib-2.0 >= $GLIB_REQUIRED)
-
 AC_SUBST(GLIB_CFLAGS)
 AC_SUBST(GLIB_LIBS)
+
+PKG_CHECK_MODULES(GLIB_EXTRA,
+                  gobject-2.0 >= $GLIB_REQUIRED
+                  gio-2.0 >= $GLIB_REQUIRED)
+AC_SUBST(GLIB_EXTRA_CFLAGS)
+AC_SUBST(GLIB_EXTRA_LIBS)
 
 AC_CONFIG_FILES([
                  Makefile
                  gisi/Makefile
                  data/Makefile
-                 data/libgisi.pc])
+                 data/libgisi.pc
+                 tests/Makefile
+                ])
 
 AC_OUTPUT
