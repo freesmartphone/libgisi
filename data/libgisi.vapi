@@ -15,49 +15,119 @@
  *
  */
 
-[CCode (cprefix = "GIsi", lower_case_cprefix = "g_isi_")]
-namespace GIsi {
+/**
+ * @namespace Gisi
+ *
+ * The low level communication services
+ **/
 
+[CCode (cprefix = "GIsi", lower_case_cprefix = "g_isi_")]
+namespace GIsi
+{
 
     [Compact]
     [CCode (free_function = "g_isi_client_destroy", cheader_filename = "libgisi.h")]
-    public class Client {
+    public class Client
+    {
+        // construction
+        [CCode (cname = "g_isi_client_create")]
+        public Client( GIsi.Modem modem, GIsi.PhonetSubsystem resource );
+
+        /*
         [CCode (cname = "g_isi_client_create")]
         public static unowned GIsi.Client create (GIsi.Modem modem, uchar resource);
+        */
+
         [CCode (cname = "g_isi_client_ind_subscribe")]
         public bool ind_subscribe (uchar type, GIsi.NotifyFunc notify, void* data);
+
         [CCode (cname = "g_isi_client_modem")]
         public unowned GIsi.Modem modem ();
+
         [CCode (cname = "g_isi_client_ntf_subscribe")]
         public bool ntf_subscribe (uchar type, GIsi.NotifyFunc notify, void* data);
+
         [CCode (cname = "g_isi_client_reset")]
         public void reset ();
+
         [CCode (cname = "g_isi_client_resource")]
         public uchar resource ();
+
         [CCode (cname = "g_isi_client_send")]
         public bool send (void* msg, size_t len, GIsi.NotifyFunc notify, void* data, GLib.DestroyNotify destroy);
+
         [CCode (cname = "g_isi_client_send_with_timeout")]
         public bool send_with_timeout (void* msg, size_t len, uint timeout, GIsi.NotifyFunc notify, void* data, GLib.DestroyNotify destroy);
+
         [CCode (cname = "g_isi_client_set_timeout")]
         public void set_timeout (uint timeout);
+
+        // verify whether a certain client subsystem is reachable
         [CCode (cname = "g_isi_client_verify")]
-        public bool verify (GIsi.NotifyFunc notify, void* data, GLib.DestroyNotify destroy);
+        public bool verify( GIsi.NotifyFunc notify, GLib.DestroyNotify? destroy = null );
+
         [CCode (cname = "g_isi_client_vsend")]
         public bool vsend (void* iov, size_t iovlen, GIsi.NotifyFunc notify, void* data, GLib.DestroyNotify destroy);
+
         [CCode (cname = "g_isi_client_vsend_with_timeout")]
         public bool vsend_with_timeout (void* iov, size_t iovlen, uint timeout, GIsi.NotifyFunc notify, void* data, GLib.DestroyNotify destroy);
     }
 
-
+    /**
+     * @class Message
+     *
+     * ISI Communication Message
+     **/
     [Compact]
     [CCode (lower_case_cprefix = "g_isi_msg_", cheader_filename = "libgisi.h", free_function = "")]
-    public class Message {
+    public class Message
+    {
+        //FIXME: Really expose?
+        /*
         public void* addr;
         public void* data;
         public int error;
         public size_t len;
         public void* @private;
         public weak GIsi.Version version;
+        */
+
+        [CCode (cname = "g_isi_msg_data", cheader_filename = "libgisi.h")]
+        public void* msg_data();
+        [CCode (cname = "g_isi_msg_data_get_byte", cheader_filename = "libgisi.h")]
+        public bool msg_data_get_byte( uint offset, uchar byte );
+        [CCode (cname = "g_isi_msg_data_get_struct", cheader_filename = "libgisi.h")]
+        public bool msg_data_get_struct( uint offset, void* type, size_t len );
+        [CCode (cname = "g_isi_msg_data_get_word", cheader_filename = "libgisi.h")]
+        public bool msg_data_get_word( uint offset, uint16 word );
+        [CCode (cname = "g_isi_msg_data_len", cheader_filename = "libgisi.h")]
+        public size_t msg_data_len();
+        [CCode (cname = "g_isi_msg_error", cheader_filename = "libgisi.h")]
+        public int msg_error();
+        [CCode (cname = "g_isi_msg_id", cheader_filename = "libgisi.h")]
+        public uchar msg_id();
+        [CCode (cname = "g_isi_msg_object", cheader_filename = "libgisi.h")]
+        public uint16 msg_object();
+        [CCode (cname = "g_isi_msg_resource", cheader_filename = "libgisi.h")]
+        public PhonetSubsystem msg_resource();
+        [CCode (cname = "g_isi_msg_strerror", cheader_filename = "libgisi.h")]
+        public unowned string msg_strerror();
+        [CCode (cname = "g_isi_msg_utid", cheader_filename = "libgisi.h")]
+        public uchar msg_utid();
+        [CCode (cname = "g_isi_msg_version_major", cheader_filename = "libgisi.h")]
+        public int msg_version_major();
+        [CCode (cname = "g_isi_msg_version_minor", cheader_filename = "libgisi.h")]
+        public int msg_version_minor();
+
+        // synthesized
+        public bool ok()
+        {
+            return ! ( msg_error() < 0 );
+        }
+        public string to_string()
+        {
+            return "<Message %s (%d) v%03d.%03d>".printf( msg_resource().to_string(), (int)msg_resource(), msg_version_major(), msg_version_minor() );
+        }
     }
 
     /**
@@ -89,6 +159,14 @@ namespace GIsi {
 
         [CCode (cname = "g_isi_pn_netlink_set_address", cheader_filename = "libgisi.h")]
         public int netlink_set_address( GIsi.PhonetDevice local );
+
+        //
+        // synthesized client factory
+        //
+        public GIsiClient.SIM sim_client_create()
+        {
+            return (GIsiClient.SIM) new GIsi.Client( this, GIsi.PhonetSubsystem.SIM );
+        }
 
         //
         // untweaked yet
@@ -207,7 +285,7 @@ namespace GIsi {
      * Enums
      **/
 
-    [CCode (cname = "uchar", cprefix = "PN_DEV_", has_type_id = false, cheader_filename = "libgisi.h")]
+    [CCode (cname = "guchar", cprefix = "PN_DEV_", has_type_id = false, cheader_filename = "libgisi.h")]
     public enum PhonetDevice {
         PC,
         HOST,
@@ -216,10 +294,28 @@ namespace GIsi {
 
 
     [CCode (cprefix = "PN_LINK_", has_type_id = false, cheader_filename = "libgisi.h")]
-    public enum PhonetLinkState {
+    public enum PhonetLinkState
+    {
         REMOVED,
         DOWN,
         UP
+    }
+
+    [CCode (cname = "guchar", cprefix = "PN_", has_type_id = false, cheader_filename = "call.h,gpds.h,gss.h,info.h,mtc.h,network.h,sim.h,sms.h,ss.h")]
+    public enum PhonetSubsystem
+    {
+        CALL,
+        EPOC_INFO,
+        GPDS,
+        GSS,
+        MTC,
+        NETWORK,
+        PHONE_INFO,
+        PEP_TYPE_GPRS,
+        SIM,
+        SMS,
+        SS,
+        WRAN
     }
 
     /**
@@ -228,8 +324,10 @@ namespace GIsi {
 
     [CCode (cheader_filename = "libgisi.h", has_target = false)]
     public delegate void DebugFunc (string fmt);
-    [CCode (cheader_filename = "libgisi.h", has_target = false)]
-    public delegate void NotifyFunc (GIsi.Message msg, void* opaque);
+    //[CCode (cheader_filename = "libgisi.h", has_target = false)]
+    //public delegate void NotifyFunc (GIsi.Message msg, void* opaque);
+    [CCode (cheader_filename = "libgisi.h")]
+    public delegate void NotifyFunc (GIsi.Message msg);
     [CCode (cheader_filename = "libgisi.h", has_target = false)]
     public delegate void PEPCallback (GIsi.PEP pep, void* opaque);
     [CCode (cheader_filename = "libgisi.h")]
@@ -283,34 +381,6 @@ namespace GIsi {
     // ?
     [CCode (cname = "g_isi_ind_subscribe", cheader_filename = "libgisi.h")]
     public static unowned GIsi.Pending ind_subscribe (GIsi.Modem modem, uchar resource, uchar type, GIsi.NotifyFunc notify, void* data, GLib.DestroyNotify destroy);
-
-    // FIXME: Move all to Message
-    [CCode (cname = "g_isi_msg_data", cheader_filename = "libgisi.h")]
-    public static void* msg_data (GIsi.Message msg);
-    [CCode (cname = "g_isi_msg_data_get_byte", cheader_filename = "libgisi.h")]
-    public static bool msg_data_get_byte (GIsi.Message msg, uint offset, uchar byte);
-    [CCode (cname = "g_isi_msg_data_get_struct", cheader_filename = "libgisi.h")]
-    public static bool msg_data_get_struct (GIsi.Message msg, uint offset, void* type, size_t len);
-    [CCode (cname = "g_isi_msg_data_get_word", cheader_filename = "libgisi.h")]
-    public static bool msg_data_get_word (GIsi.Message msg, uint offset, uint16 word);
-    [CCode (cname = "g_isi_msg_data_len", cheader_filename = "libgisi.h")]
-    public static size_t msg_data_len (GIsi.Message msg);
-    [CCode (cname = "g_isi_msg_error", cheader_filename = "libgisi.h")]
-    public static int msg_error (GIsi.Message msg);
-    [CCode (cname = "g_isi_msg_id", cheader_filename = "libgisi.h")]
-    public static uchar msg_id (GIsi.Message msg);
-    [CCode (cname = "g_isi_msg_object", cheader_filename = "libgisi.h")]
-    public static uint16 msg_object (GIsi.Message msg);
-    [CCode (cname = "g_isi_msg_resource", cheader_filename = "libgisi.h")]
-    public static uchar msg_resource (GIsi.Message msg);
-    [CCode (cname = "g_isi_msg_strerror", cheader_filename = "libgisi.h")]
-    public static unowned string msg_strerror (GIsi.Message msg);
-    [CCode (cname = "g_isi_msg_utid", cheader_filename = "libgisi.h")]
-    public static uchar msg_utid (GIsi.Message msg);
-    [CCode (cname = "g_isi_msg_version_major", cheader_filename = "libgisi.h")]
-    public static int msg_version_major (GIsi.Message msg);
-    [CCode (cname = "g_isi_msg_version_minor", cheader_filename = "libgisi.h")]
-    public static int msg_version_minor (GIsi.Message msg);
 
     // ?
     [CCode (cname = "g_isi_ntf_subscribe", cheader_filename = "libgisi.h")]
@@ -382,4 +452,26 @@ namespace GIsi {
     [CCode (cname = "g_isi_service_bind", cheader_filename = "libgisi.h")]
     public static unowned GIsi.Pending service_bind (GIsi.Modem modem, uchar resource, uchar type, GIsi.NotifyFunc notify, void* data, GLib.DestroyNotify destroy);
 
+}
+
+/**
+ * @namespace GIsiClient
+ *
+ * The high level protocol clients
+ **/
+
+[CCode (cprefix = "")]
+namespace GIsiClient
+{
+    [Compact]
+    [CCode (cname = "GIsiClient", cprefix = "SIM_", free_function = "g_isi_client_destroy", cheader_filename = "libgisi.h,sim.h")]
+    public class SIM : GIsi.Client
+    {
+        private SIM();
+
+        [CCode (cname = "SIM_TIMEOUT", cheader_filename = "sim.h")]
+        public const uint TIMEOUT;
+
+        public const int MAX_IMSI_LENGTH;
+    }
 }

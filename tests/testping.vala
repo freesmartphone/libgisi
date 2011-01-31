@@ -37,6 +37,7 @@ class ModemTester
 {
     public GIsi.Modem modem;
     public GIsi.PhonetLinkState linkstate;
+    public GIsiClient.SIM sim;
 
     public ModemTester( string iface )
     {
@@ -48,6 +49,12 @@ class ModemTester
     {
         linkstate = st;
         debug( "netlink status for modem %p (%s) now %s", modem, iface, st.to_string() );
+    }
+
+    public void onClientReachabilityVerification( GIsi.Message msg )
+    {
+        debug( @"client reachability verification got a response: $msg" );
+        debug( "ISI message ok is %s", msg.ok().to_string() );
     }
 }
 
@@ -81,6 +88,16 @@ void test_netlink_bringup()
 }
 
 //===========================================================================
+void test_client_sim_bringup()
+//===========================================================================
+{
+    mt.sim = mt.modem.sim_client_create();
+    assert( mt.sim != null );
+
+    mt.sim.verify( mt.onClientReachabilityVerification );
+}
+
+//===========================================================================
 void main( string[] args )
 //===========================================================================
 {
@@ -88,6 +105,7 @@ void main( string[] args )
 
     Test.add_func( "/GISI/Modem/Create", test_modem_create );
     Test.add_func( "/GISI/Netlink/Bringup", test_netlink_bringup );
+    Test.add_func( "/GISI/Client/SIM/Bringup", test_client_sim_bringup );
 
     mt = new ModemTester( MODEM_IFACE );
 

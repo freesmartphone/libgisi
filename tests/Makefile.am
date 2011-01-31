@@ -4,6 +4,7 @@ NULL =
 
 AM_CFLAGS = \
 	-I$(top_srcdir)/gisi \
+	-I$(top_srcdir)/clients \
 	$(GLIB_CFLAGS) \
 	$(GLIB_EXTRA_CFLAGS) \
 	$(NULL)
