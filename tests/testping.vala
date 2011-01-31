@@ -36,14 +36,17 @@ public static void sighandler( int signum )
 class ModemTester
 {
     public GIsi.Modem modem;
+    public GIsi.PhonetLinkState linkstate;
 
     public ModemTester( string iface )
     {
         modem = new GIsi.Modem( iface );
+        linkstate = (GIsi.PhonetLinkState) 999;
     }
 
     public void onNetlinkStateChanged( GIsi.Modem modem, GIsi.PhonetLinkState st, string iface )
     {
+        linkstate = st;
         debug( "netlink status for modem %p (%s) now %s", modem, iface, st.to_string() );
     }
 }
@@ -68,6 +71,13 @@ void test_netlink_bringup()
     assert( netlink != null );
 
     mt.modem.netlink_set_address( GIsi.PhonetDevice.SOS );
+
+    while ( mt.linkstate != GIsi.PhonetLinkState.UP && mt.linkstate != GIsi.PhonetLinkState.DOWN )
+    {
+        MainContext.default().iteration( false );
+    }
+
+    assert( mt.linkstate == GIsi.PhonetLinkState.UP );
 }
 
 //===========================================================================
