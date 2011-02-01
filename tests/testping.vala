@@ -37,6 +37,7 @@ class ModemTester
 {
     public GIsi.Modem modem;
     public GIsi.PhonetLinkState linkstate;
+    public GIsiClient.PhoneInfo phoneinfo;
     public GIsiClient.SIM sim;
 
     public ModemTester( string iface )
@@ -45,6 +46,15 @@ class ModemTester
         linkstate = (GIsi.PhonetLinkState) 999;
     }
 
+    public void deviceReadManufacturer()
+    {
+      	var req = new uchar[] { GIsiClient.PhoneInfo.MessageType.PRODUCT_INFO_READ_REQ, GIsiClient.PhoneInfo.SubblockType.PRODUCT_INFO_MANUFACTURER };
+        phoneinfo.send( req, onResponseReceived );
+    }
+
+    //
+    // callbacks
+    //
     public void onNetlinkStateChanged( GIsi.Modem modem, GIsi.PhonetLinkState st, string iface )
     {
         linkstate = st;
@@ -55,6 +65,41 @@ class ModemTester
     {
         debug( @"client reachability verification got a response: $msg" );
         debug( "ISI message ok is %s", msg.ok().to_string() );
+    }
+
+    public void onResponseReceived( GIsi.Message msg )
+    {
+        debug( @"got a response: $msg" );
+        debug( "ISI message status is %d", msg.msg_error() );
+
+        unowned string str;
+
+        var sbi = msg.subblock_iter_create( 2 );
+        debug( "yo" );
+        debug( "iter is valid = %s", sbi.is_valid().to_string() );
+        debug( "get latin tag = %s", sbi.get_latin_tag( out str, 5, 4 ).to_string() );
+
+
+        debug( "result = %s", str );
+
+
+
+
+        debug( "next = %s", sbi.next().to_string() );
+        debug( "yo" );
+        debug( "iter is valid = %s", sbi.is_valid().to_string() );
+        debug( "next = %s", sbi.next().to_string() );
+        debug( "yo" );
+        debug( "iter is valid = %s", sbi.is_valid().to_string() );
+        debug( "next = %s", sbi.next().to_string() );
+
+        /*
+        for ( var sbi = msg.subblock_iter_create( 2 ); sbi.is_valid(); sbi.next() )
+        {
+            debug( "got one subblock iter" );
+        }
+        */
+
     }
 }
 
@@ -88,6 +133,23 @@ void test_netlink_bringup()
 }
 
 //===========================================================================
+void test_client_phoneinfo_bringup()
+//===========================================================================
+{
+    mt.phoneinfo = mt.modem.phone_info_client_create();
+    assert( mt.phoneinfo != null );
+
+    mt.phoneinfo.verify( mt.onClientReachabilityVerification );
+}
+
+//===========================================================================
+void test_client_phoneinfo_query()
+//===========================================================================
+{
+    mt.deviceReadManufacturer();
+}
+
+//===========================================================================
 void test_client_sim_bringup()
 //===========================================================================
 {
@@ -105,6 +167,8 @@ void main( string[] args )
 
     Test.add_func( "/GISI/Modem/Create", test_modem_create );
     Test.add_func( "/GISI/Netlink/Bringup", test_netlink_bringup );
+    Test.add_func( "/GISI/Client/PhoneInfo/Bringup", test_client_phoneinfo_bringup );
+    Test.add_func( "/GISI/Client/PhoneInfo/Query", test_client_phoneinfo_query );
     Test.add_func( "/GISI/Client/SIM/Bringup", test_client_sim_bringup );
 
     mt = new ModemTester( MODEM_IFACE );
