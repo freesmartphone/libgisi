@@ -5,6 +5,7 @@ NULL =
 AM_CFLAGS = \
 	-I$(top_srcdir)/gisi \
 	-I$(top_srcdir)/clients \
+	-I$(top_srcdir)/gisicomm \
 	$(GLIB_CFLAGS) \
 	$(GLIB_EXTRA_CFLAGS) \
 	$(NULL)
@@ -13,17 +14,20 @@ VALAC_ARGS = \
 	-C \
 	--basedir $(top_srcdir) \
 	--vapidir $(top_srcdir)/data \
+	--vapidir $(top_srcdir)/gisicomm \
 	--pkg posix \
 	--pkg glib-2.0 \
 	--pkg gio-2.0 \
-	--pkg libgisi
+	--pkg libgisi \
+	--pkg gisicomm-0.0
 
 noinst_PROGRAMS = $(TEST_PROGS)
 
 progs_ldadd = \
 	$(GLIB_LIBS) \
 	$(GLIB_EXTRA_LIBS) \
-	../gisi/libgisi.la
+	../gisi/libgisi.la \
+	../gisicomm/libgisicomm.la
 
 #
 # ping test

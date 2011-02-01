@@ -40,6 +40,8 @@ class ModemTester
     public GIsiClient.PhoneInfo phoneinfo;
     public GIsiClient.SIM sim;
 
+    public GIsiComm.PhoneInfo gcphoneinfo;
+
     public ModemTester( string iface )
     {
         modem = new GIsi.Modem( iface );
@@ -70,7 +72,7 @@ class ModemTester
     public void onResponseReceived( GIsi.Message msg )
     {
         debug( @"got a response: $msg" );
-        debug( "ISI message status is %d", msg.msg_error() );
+        debug( "ISI message status is %d", msg.error );
 
         unowned string str;
 
@@ -143,10 +145,19 @@ void test_client_phoneinfo_bringup()
 }
 
 //===========================================================================
-void test_client_phoneinfo_query()
+void test_comm_phoneinfo_query()
 //===========================================================================
 {
-    mt.deviceReadManufacturer();
+    var ok = false;
+
+    mt.gcphoneinfo = new GIsiComm.PhoneInfo( mt.modem );
+    mt.gcphoneinfo.readManufacturer( ( error, result ) => {
+        assert( error == GIsiComm.ErrorCode.OK );
+        assert( result == "Nokia" );
+        ok = true;
+    } );
+
+    while ( !ok ) MainContext.default().iteration( false );
 }
 
 //===========================================================================
@@ -168,7 +179,7 @@ void main( string[] args )
     Test.add_func( "/GISI/Modem/Create", test_modem_create );
     Test.add_func( "/GISI/Netlink/Bringup", test_netlink_bringup );
     Test.add_func( "/GISI/Client/PhoneInfo/Bringup", test_client_phoneinfo_bringup );
-    Test.add_func( "/GISI/Client/PhoneInfo/Query", test_client_phoneinfo_query );
+    Test.add_func( "/GISI/COMM/PhoneInfo/Query", test_comm_phoneinfo_query );
     Test.add_func( "/GISI/Client/SIM/Bringup", test_client_sim_bringup );
 
     mt = new ModemTester( MODEM_IFACE );

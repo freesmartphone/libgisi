@@ -3,6 +3,7 @@ NULL =
 SUBDIRS = \
   clients \
   gisi \
+  gisicomm \
   data \
   tests \
   $(NULL)

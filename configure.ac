@@ -40,6 +40,7 @@ AC_CONFIG_FILES([
                  Makefile
                  clients/Makefile
                  gisi/Makefile
+                 gisicomm/Makefile
                  data/Makefile
                  data/libgisi.pc
                  tests/Makefile

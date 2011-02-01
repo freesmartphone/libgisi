@@ -1,0 +1,6 @@
+*.h
+*.c
+*.o
+*.vapi
+.vala.stamp
+

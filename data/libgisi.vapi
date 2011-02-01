@@ -81,11 +81,11 @@ namespace GIsi
         [CCode (cname = "g_isi_msg_data", cheader_filename = "libgisi.h")]
         public void* data();
         [CCode (cname = "g_isi_msg_data_get_byte", cheader_filename = "libgisi.h")]
-        public bool data_get_byte( uint offset, uchar byte );
+        public bool data_get_byte( uint offset, out uchar byte );
         [CCode (cname = "g_isi_msg_data_get_struct", cheader_filename = "libgisi.h")]
-        public bool data_get_struct( uint offset, void* type, size_t len );
+        public bool data_get_struct( uint offset, out void* ptr, size_t len );
         [CCode (cname = "g_isi_msg_data_get_word", cheader_filename = "libgisi.h")]
-        public bool data_get_word( uint offset, uint16 word );
+        public bool data_get_word( uint offset, out uint16 word );
 
         // properties
         public size_t data_len { [CCode (cname = "g_isi_msg_data_len", cheader_filename = "libgisi.h")] get; }
@@ -309,11 +309,11 @@ namespace GIsi
         [CCode (cname = "g_isi_sb_iter_get_alpha_tag", cheader_filename = "libgisi.h")]
         public bool get_alpha_tag( out unowned string utf8, size_t len, uint pos );
         [CCode (cname = "g_isi_sb_iter_get_byte", cheader_filename = "libgisi.h")]
-        public bool get_byte( uchar byte, uint pos );
+        public bool get_byte( out uchar byte, uint pos );
         [CCode (cname = "g_isi_sb_iter_get_data", cheader_filename = "libgisi.h")]
-        public bool get_data( void* data, uint pos );
+        public bool get_data( out void* data, uint pos );
         [CCode (cname = "g_isi_sb_iter_get_dword", cheader_filename = "libgisi.h")]
-        public bool get_dword( uint32 dword, uint pos );
+        public bool get_dword( out uint32 dword, uint pos );
         [CCode (cname = "g_isi_sb_iter_get_latin_tag", cheader_filename = "libgisi.h")]
         public bool get_latin_tag( out unowned string ascii, size_t len, uint pos );
         [CCode (cname = "g_isi_sb_iter_get_oper_code", cheader_filename = "libgisi.h")]
@@ -485,7 +485,6 @@ namespace GIsi
 [CCode (cprefix = "")]
 namespace GIsiClient
 {
-
     /**
      * @class SIM
      *
