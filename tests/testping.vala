@@ -158,6 +158,19 @@ void test_comm_phoneinfo_query()
     } );
 
     while ( !ok ) MainContext.default().iteration( false );
+
+    ok = false;
+
+    mt.gcphoneinfo.readManufacturer( ( error, result ) => {
+        assert( error == GIsiComm.ErrorCode.OK );
+        assert( result == "Nokia" );
+        ok = true;
+    } );
+
+    while ( !ok ) MainContext.default().iteration( false );
+
+    ok = false;
+
 }
 
 //===========================================================================

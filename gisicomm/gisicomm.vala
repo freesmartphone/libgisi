@@ -34,38 +34,47 @@ namespace GIsiComm
             ll = modem.phone_info_client_create();
         }
 
-        public void readManufacturer( StringResultFunc cb )
+        private void checked( bool predicate ) throws GLib.Error
+        {
+            if ( !predicate )
+            {
+                throw new GLib.IOError.INVALID_DATA( "FSO" );
+            }
+        }
+
+        public void parseSimpleString( GIsi.Message msg, StringResultFunc cb )
+        {
+            if ( !msg.ok() )
+            {
+                cb( (ErrorCode) msg.error, null );
+                return;
+            }
+
+            var sbi = msg.subblock_iter_create( 2 );
+            if ( !sbi.is_valid() )
+            {
+                cb( ErrorCode.INVALID_FORMAT, null );
+                return;
+            }
+
+            try
+            {
+                cb( ErrorCode.OK, sbi.latin_tag_at_position( sbi.byte_at_position( 3 ), 4 ) );
+            }
+            catch ( Error e )
+            {
+                cb( ErrorCode.INVALID_FORMAT, null );
+            }
+        }
+
+        public void readManufacturer( owned StringResultFunc cb )
         {
             var req = new uchar[] { GIsiClient.PhoneInfo.MessageType.PRODUCT_INFO_READ_REQ, GIsiClient.PhoneInfo.SubblockType.PRODUCT_INFO_MANUFACTURER };
+
+            debug( "this = %p", this );
+
             ll.send( req, ( msg ) => {
-                if ( !msg.ok() )
-                {
-                    cb( (ErrorCode) msg.error, null );
-                    return;
-                }
-
-                var sbi = msg.subblock_iter_create( 2 );
-                if ( !sbi.is_valid() )
-                {
-                    cb( ErrorCode.INVALID_FORMAT, null );
-                    return;
-                }
-
-                uchar length;
-                if ( !sbi.get_byte( out length, 3 ) )
-                {
-                    cb( ErrorCode.INVALID_FORMAT, null );
-                    return;
-                }
-
-                unowned string str = null;
-                if ( !sbi.get_latin_tag( out str, length, 4 ) )
-                {
-                    cb( ErrorCode.INVALID_FORMAT, null );
-                    return;
-                }
-
-                cb( ErrorCode.OK, str.dup() );
+                parseSimpleString( msg, cb );
             } );
         }
     }
