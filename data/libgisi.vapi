@@ -24,7 +24,11 @@
 [CCode (cprefix = "GIsi", lower_case_cprefix = "g_isi_")]
 namespace GIsi
 {
-
+    /**
+     * @class Client
+     *
+     * ISI Communication Client (aka Subsystem)
+     **/
     [Compact]
     [CCode (free_function = "g_isi_client_destroy", cheader_filename = "libgisi.h")]
     public class Client
@@ -33,16 +37,14 @@ namespace GIsi
         [CCode (cname = "g_isi_client_create")]
         public Client( GIsi.Modem modem, GIsi.PhonetSubsystem resource );
 
-        /*
-        [CCode (cname = "g_isi_client_create")]
-        public static unowned GIsi.Client create( GIsi.Modem modem, GIsi.PhonetSubsystem resource );
-        */
+        // properties
+        public unowned GIsi.Modem modem { [CCode (cname = "g_isi_client_modem")] get; }
+        public uint timeout { [CCode (cname = "g_isi_client_set_timeout")] set; }
+        public PhonetSubsystem resource { [CCode (cname = "g_isi_client_resource")] get; }
 
+        // various
         [CCode (cname = "g_isi_client_ind_subscribe")]
         public bool ind_subscribe( uchar type, GIsi.NotifyFunc notify );
-
-        [CCode (cname = "g_isi_client_modem")]
-        public unowned GIsi.Modem modem();
 
         [CCode (cname = "g_isi_client_ntf_subscribe")]
         public bool ntf_subscribe( uchar type, GIsi.NotifyFunc notify );
@@ -50,17 +52,11 @@ namespace GIsi
         [CCode (cname = "g_isi_client_reset")]
         public void reset();
 
-        [CCode (cname = "g_isi_client_resource")]
-        public uchar resource();
-
         [CCode (cname = "g_isi_client_send")]
         public bool send( uint8[] msg, GIsi.NotifyFunc notify, GLib.DestroyNotify? destroy = null );
 
         [CCode (cname = "g_isi_client_send_with_timeout")]
         public bool send_with_timeout( uint8[] msg, uint timeout, GIsi.NotifyFunc notify, GLib.DestroyNotify? destroy = null );
-
-        [CCode (cname = "g_isi_client_set_timeout")]
-        public void set_timeout( uint timeout );
 
         // verify whether a certain client subsystem is reachable
         [CCode (cname = "g_isi_client_verify")]
@@ -82,42 +78,25 @@ namespace GIsi
     [CCode (lower_case_cprefix = "g_isi_msg_", cheader_filename = "libgisi.h,call.h,gpds.h,gss.h,info.h,mtc.h,network.h,sim.h,sms.h,ss.h", free_function = "")]
     public class Message
     {
-        //FIXME: Really expose?
-        /*
-        public void* addr;
-        public void* data;
-        public int error;
-        public size_t len;
-        public void* @private;
-        public weak GIsi.Version version;
-        */
-
         [CCode (cname = "g_isi_msg_data", cheader_filename = "libgisi.h")]
-        public void* msg_data();
+        public void* data();
         [CCode (cname = "g_isi_msg_data_get_byte", cheader_filename = "libgisi.h")]
-        public bool msg_data_get_byte( uint offset, uchar byte );
+        public bool data_get_byte( uint offset, uchar byte );
         [CCode (cname = "g_isi_msg_data_get_struct", cheader_filename = "libgisi.h")]
-        public bool msg_data_get_struct( uint offset, void* type, size_t len );
+        public bool data_get_struct( uint offset, void* type, size_t len );
         [CCode (cname = "g_isi_msg_data_get_word", cheader_filename = "libgisi.h")]
-        public bool msg_data_get_word( uint offset, uint16 word );
-        [CCode (cname = "g_isi_msg_data_len", cheader_filename = "libgisi.h")]
-        public size_t msg_data_len();
-        [CCode (cname = "g_isi_msg_error", cheader_filename = "libgisi.h")]
-        public int msg_error();
-        [CCode (cname = "g_isi_msg_id", cheader_filename = "libgisi.h")]
-        public uchar msg_id();
-        [CCode (cname = "g_isi_msg_object", cheader_filename = "libgisi.h")]
-        public uint16 msg_object();
-        [CCode (cname = "g_isi_msg_resource", cheader_filename = "libgisi.h")]
-        public PhonetSubsystem msg_resource();
-        [CCode (cname = "g_isi_msg_strerror", cheader_filename = "libgisi.h")]
-        public unowned string msg_strerror();
-        [CCode (cname = "g_isi_msg_utid", cheader_filename = "libgisi.h")]
-        public uchar msg_utid();
-        [CCode (cname = "g_isi_msg_version_major", cheader_filename = "libgisi.h")]
-        public int msg_version_major();
-        [CCode (cname = "g_isi_msg_version_minor", cheader_filename = "libgisi.h")]
-        public int msg_version_minor();
+        public bool data_get_word( uint offset, uint16 word );
+
+        // properties
+        public size_t data_len { [CCode (cname = "g_isi_msg_data_len", cheader_filename = "libgisi.h")] get; }
+        public int error { [CCode (cname = "g_isi_msg_error", cheader_filename = "libgisi.h")] get; }
+        public uchar id { [CCode (cname = "g_isi_msg_id", cheader_filename = "libgisi.h")] get; }
+        public uint16 object { [CCode (cname = "g_isi_msg_object", cheader_filename = "libgisi.h")] get; }
+        public PhonetSubsystem resource { [CCode (cname = "g_isi_msg_resource", cheader_filename = "libgisi.h")] get; }
+        public unowned string strerror { [CCode (cname = "g_isi_msg_strerror", cheader_filename = "libgisi.h")] get; }
+        public uchar utid { [CCode (cname = "g_isi_msg_utid", cheader_filename = "libgisi.h")] get; }
+        public int version_major { [CCode (cname = "g_isi_msg_version_major", cheader_filename = "libgisi.h")] get; }
+        public int version_minor { [CCode (cname = "g_isi_msg_version_minor", cheader_filename = "libgisi.h")] get; }
 
         // subblocks
         public SubBlockIter subblock_iter_create( size_t used )
@@ -130,11 +109,11 @@ namespace GIsi
         // synthesized
         public bool ok()
         {
-            return ! ( msg_error() < 0 );
+            return error >= 0;
         }
         public string to_string()
         {
-            return "<Message %s (%d) v%03d.%03d>".printf( msg_resource().to_string(), (int)msg_resource(), msg_version_major(), msg_version_minor() );
+            return "<Message %s (%d) v%03d.%03d>".printf( resource.to_string(), (int)resource, version_major, version_minor );
         }
     }
 
@@ -169,7 +148,7 @@ namespace GIsi
         public int netlink_set_address( GIsi.PhonetDevice local );
 
         //
-        // synthesized client factory
+        // synthesized client factories
         //
         public GIsiClient.SIM sim_client_create()
         {
@@ -204,7 +183,7 @@ namespace GIsi
         public int vsendto (void* dst, void* iov, size_t iovlen);
 
         //
-        // assorted request functions (deprecated?)
+        // assorted lowlevel request functions
         //
         [CCode (cname = "g_isi_request_send", cheader_filename = "libgisi.h")]
         public unowned GIsi.Pending request_send( uchar resource, void* buf, size_t len, uint timeout, GIsi.NotifyFunc notify, GLib.DestroyNotify? destroy = null );
@@ -224,10 +203,16 @@ namespace GIsi
         public int response_vsend( GIsi.Message req, void* iov, size_t iovlen);
     }
 
+    /**
+     * @class PEP
+     *
+     * ???
+     **/
 
     [Compact]
     [CCode (free_function = "g_isi_pep_destroy", cheader_filename = "libgisi.h")]
-    public class PEP {
+    public class PEP
+    {
         [CCode (cname = "g_isi_pep_create")]
         public static unowned GIsi.PEP create (GIsi.Modem modem, GIsi.PEPCallback cb, void* data);
         [CCode (cname = "g_isi_pep_get_ifindex")]
@@ -238,7 +223,11 @@ namespace GIsi
         public uint16 get_object ();
     }
 
-
+    /**
+     * @class Pending
+     *
+     * Handle to a pending ISI message
+     **/
     [Compact]
     [CCode (cheader_filename = "libgisi.h")]
     public class Pending
@@ -261,6 +250,11 @@ namespace GIsi
         public void stop();
     }
 
+    /**
+     * @class Pipe
+     *
+     * ???
+     **/
     [Compact]
     [CCode (free_function = "g_isi_pipe_destroy", cheader_filename = "libgisi.h")]
     public class Pipe
@@ -281,7 +275,11 @@ namespace GIsi
         public int start ();
     }
 
-
+    /**
+     * @class Server
+     *
+     * ???
+     **/
     [Compact]
     [CCode (free_function = "g_isi_server_destroy", cheader_filename = "libgisi.h")]
     public class Server
@@ -300,18 +298,14 @@ namespace GIsi
         public int vsend (GIsi.Message req, void* iov, size_t iovlen);
     }
 
-    //[Compact]
+    /**
+     * @struct SubBlockIter
+     *
+     * Iterator for sub blocks, which are the building blocks of ISI messages
+     **/
     [CCode (cheader_filename = "libgisi.h")]
     public struct SubBlockIter
     {
-        // FIXME: Expose?
-        /*
-        public uchar end;
-        public bool longhdr;
-        public uchar start;
-        public uint16 sub_blocks;
-        */
-
         [CCode (cname = "g_isi_sb_iter_get_alpha_tag", cheader_filename = "libgisi.h")]
         public bool get_alpha_tag( out unowned string utf8, size_t len, uint pos );
         [CCode (cname = "g_isi_sb_iter_get_byte", cheader_filename = "libgisi.h")]
@@ -320,12 +314,8 @@ namespace GIsi
         public bool get_data( void* data, uint pos );
         [CCode (cname = "g_isi_sb_iter_get_dword", cheader_filename = "libgisi.h")]
         public bool get_dword( uint32 dword, uint pos );
-        [CCode (cname = "g_isi_sb_iter_get_id", cheader_filename = "libgisi.h")]
-        public int get_id();
         [CCode (cname = "g_isi_sb_iter_get_latin_tag", cheader_filename = "libgisi.h")]
         public bool get_latin_tag( out unowned string ascii, size_t len, uint pos );
-        [CCode (cname = "g_isi_sb_iter_get_len", cheader_filename = "libgisi.h")]
-        public size_t get_len();
         [CCode (cname = "g_isi_sb_iter_get_oper_code", cheader_filename = "libgisi.h")]
         public bool get_oper_code( string mcc, string mnc, uint pos );
         [CCode (cname = "g_isi_sb_iter_get_struct", cheader_filename = "libgisi.h")]
@@ -348,18 +338,15 @@ namespace GIsi
         public static void sb_subiter_init_full (GIsi.SubBlockIter @out, GIsi.SubBlockIter @in, size_t used, bool longhdr, uint16 sub_blocks);
         */
 
-
-
-
-
-
-
+        // properties
+        public int id { [CCode (cname = "g_isi_sb_iter_get_id", cheader_filename = "libgisi.h")] get; }
+        public size_t len { [CCode (cname = "g_isi_sb_iter_get_len", cheader_filename = "libgisi.h")] get; }
     }
 
-
     [Compact]
-    [CCode (lower_case_cprefix = "g_isi_msg_", cheader_filename = "libgisi.h")]
-    public class Version {
+    [CCode (cheader_filename = "libgisi.h")]
+    public class Version
+    {
         public int major;
         public int minor;
     }
@@ -407,16 +394,19 @@ namespace GIsi
 
     [CCode (cheader_filename = "libgisi.h", has_target = false)]
     public delegate void DebugFunc (string fmt);
-    //[CCode (cheader_filename = "libgisi.h", has_target = false)]
-    //public delegate void NotifyFunc (GIsi.Message msg, void* opaque);
+
     [CCode (cheader_filename = "libgisi.h")]
     public delegate void NotifyFunc (GIsi.Message msg);
+
     [CCode (cheader_filename = "libgisi.h", has_target = false)]
     public delegate void PEPCallback (GIsi.PEP pep, void* opaque);
+
     [CCode (cheader_filename = "libgisi.h")]
     public delegate void PhonetNetlinkFunc (GIsi.Modem modem, GIsi.PhonetLinkState st, string iface);
+
     [CCode (cheader_filename = "libgisi.h", has_target = false)]
     public delegate void PipeErrorHandler (GIsi.Pipe pipe);
+
     [CCode (cheader_filename = "libgisi.h", has_target = false)]
     public delegate void PipeHandler (GIsi.Pipe pipe);
 
@@ -472,7 +462,6 @@ namespace GIsi
     // ?
     [CCode (cname = "g_isi_service_bind", cheader_filename = "libgisi.h")]
     public static unowned GIsi.Pending service_bind (GIsi.Modem modem, uchar resource, uchar type, GIsi.NotifyFunc notify, void* data, GLib.DestroyNotify destroy);
-
 
     //FIXME: Move all to PhonetDevice
     [CCode (cname = "g_isi_phonet_new", cheader_filename = "libgisi.h")]
