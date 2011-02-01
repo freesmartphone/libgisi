@@ -161,9 +161,9 @@ void test_comm_phoneinfo_query()
 
     ok = false;
 
-    mt.gcphoneinfo.readManufacturer( ( error, result ) => {
+    mt.gcphoneinfo.readModel( ( error, result ) => {
         assert( error == GIsiComm.ErrorCode.OK );
-        assert( result == "Nokia" );
+        assert( result == "Nokia N900" );
         ok = true;
     } );
 

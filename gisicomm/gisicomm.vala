@@ -34,6 +34,9 @@ namespace GIsiComm
             ll = modem.phone_info_client_create();
         }
 
+        //
+        // Helpers
+        //
         private void checked( bool predicate ) throws GLib.Error
         {
             if ( !predicate )
@@ -42,7 +45,7 @@ namespace GIsiComm
             }
         }
 
-        public void parseSimpleString( GIsi.Message msg, StringResultFunc cb )
+        private void parseSimpleString( GIsi.Message msg, StringResultFunc cb )
         {
             if ( !msg.ok() )
             {
@@ -67,11 +70,22 @@ namespace GIsiComm
             }
         }
 
+        //
+        // public API
+        //
+
         public void readManufacturer( owned StringResultFunc cb )
         {
             var req = new uchar[] { GIsiClient.PhoneInfo.MessageType.PRODUCT_INFO_READ_REQ, GIsiClient.PhoneInfo.SubblockType.PRODUCT_INFO_MANUFACTURER };
 
-            debug( "this = %p", this );
+            ll.send( req, ( msg ) => {
+                parseSimpleString( msg, cb );
+            } );
+        }
+
+        public void readModel( owned StringResultFunc cb )
+        {
+            var req = new uchar[] { GIsiClient.PhoneInfo.MessageType.PRODUCT_INFO_READ_REQ, GIsiClient.PhoneInfo.SubblockType.PRODUCT_INFO_NAME };
 
             ll.send( req, ( msg ) => {
                 parseSimpleString( msg, cb );
