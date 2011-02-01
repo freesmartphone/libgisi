@@ -1,4 +1,9 @@
 /*
+ * Communication helper library for GISI
+ *
+ * (C) 2011 Michael 'Mickey' Lauer <mlauer@vanille-media.de>
+ * (C) 2011 Klaus 'MrMoku' Kurzmann <mok@fluxnetz.de>
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either

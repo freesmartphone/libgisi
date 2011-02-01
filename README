@@ -1,0 +1,13 @@
+This project contains the following parts:
+
+ * libgisi (standalone), a low level library for communicating with
+   ISI devices, such as the modem found in some Nokia devices.
+
+ * vala bindings for libgisi.
+
+ * protocol definitions and enumerations.
+
+ * libgisicomm, a high level library for communicating with
+   ISI modem devices.
+
+
