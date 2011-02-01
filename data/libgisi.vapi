@@ -53,20 +53,20 @@ namespace GIsi
         public void reset();
 
         [CCode (cname = "g_isi_client_send")]
-        public bool send( uint8[] msg, GIsi.NotifyFunc notify, GLib.DestroyNotify? destroy = null );
+        public bool send( uint8[] msg, owned GIsi.NotifyFunc notify );
 
         [CCode (cname = "g_isi_client_send_with_timeout")]
-        public bool send_with_timeout( uint8[] msg, uint timeout, GIsi.NotifyFunc notify, GLib.DestroyNotify? destroy = null );
+        public bool send_with_timeout( uint8[] msg, uint timeout, owned GIsi.NotifyFunc notify );
 
         // verify whether a certain client subsystem is reachable
         [CCode (cname = "g_isi_client_verify")]
-        public bool verify( GIsi.NotifyFunc notify, GLib.DestroyNotify? destroy = null );
+        public bool verify( owned GIsi.NotifyFunc notify );
 
         [CCode (cname = "g_isi_client_vsend")]
-        public bool vsend( uint8[] iov, GIsi.NotifyFunc notify, GLib.DestroyNotify? destroy = null );
+        public bool vsend( uint8[] iov, owned GIsi.NotifyFunc notify );
 
         [CCode (cname = "g_isi_client_vsend_with_timeout")]
-        public bool vsend_with_timeout( uint8[] iov, uint timeout, GIsi.NotifyFunc notify, GLib.DestroyNotify? destroy = null );
+        public bool vsend_with_timeout( uint8[] iov, uint timeout, owned GIsi.NotifyFunc notify );
     }
 
     /**
@@ -186,17 +186,17 @@ namespace GIsi
         // assorted lowlevel request functions
         //
         [CCode (cname = "g_isi_request_send", cheader_filename = "libgisi.h")]
-        public unowned GIsi.Pending request_send( uchar resource, void* buf, size_t len, uint timeout, GIsi.NotifyFunc notify, GLib.DestroyNotify? destroy = null );
+        public unowned GIsi.Pending request_send( uchar resource, void* buf, size_t len, uint timeout, owned GIsi.NotifyFunc notify );
         [CCode (cname = "g_isi_request_sendto", cheader_filename = "libgisi.h")]
-        public unowned GIsi.Pending request_sendto( void* dst, void* buf, size_t len, uint timeout, GIsi.NotifyFunc notify, GLib.DestroyNotify? destroy = null );
+        public unowned GIsi.Pending request_sendto( void* dst, void* buf, size_t len, uint timeout, owned GIsi.NotifyFunc notify );
         [CCode (cname = "g_isi_request_utid", cheader_filename = "libgisi.h")]
         public uchar request_utid (GIsi.Pending resp);
         [CCode (cname = "g_isi_request_vsend", cheader_filename = "libgisi.h")]
-        public unowned GIsi.Pending request_vsend( uchar resource, void* iov, size_t iovlen, uint timeout, GIsi.NotifyFunc notify, GLib.DestroyNotify? destroy = null );
+        public unowned GIsi.Pending request_vsend( uchar resource, void* iov, size_t iovlen, uint timeout, owned GIsi.NotifyFunc notify );
         [CCode (cname = "g_isi_request_vsendto", cheader_filename = "libgisi.h")]
-        public unowned GIsi.Pending request_vsendto( void* dst, void* iov, size_t iovlen, uint timeout, GIsi.NotifyFunc notify, GLib.DestroyNotify? destroy = null );
+        public unowned GIsi.Pending request_vsendto( void* dst, void* iov, size_t iovlen, uint timeout, owned GIsi.NotifyFunc notify );
         [CCode (cname = "g_isi_resource_ping", cheader_filename = "libgisi.h")]
-        public unowned GIsi.Pending resource_ping( uchar resource, GIsi.NotifyFunc notify, GLib.DestroyNotify? destroy = null );
+        public unowned GIsi.Pending resource_ping( uchar resource, owned GIsi.NotifyFunc notify );
         [CCode (cname = "g_isi_response_send", cheader_filename = "libgisi.h")]
         public int response_send( GIsi.Message req, void* buf, size_t len);
         [CCode (cname = "g_isi_response_vsend", cheader_filename = "libgisi.h")]
@@ -341,6 +341,29 @@ namespace GIsi
         // properties
         public int id { [CCode (cname = "g_isi_sb_iter_get_id", cheader_filename = "libgisi.h")] get; }
         public size_t len { [CCode (cname = "g_isi_sb_iter_get_len", cheader_filename = "libgisi.h")] get; }
+
+        // synthesized convenience functions
+        private void checked( bool predicate ) throws GLib.Error
+        {
+            if ( !predicate )
+            {
+                throw new GLib.IOError.INVALID_DATA( @"Invalid data in SubBlockIter" );
+            }
+        }
+
+        public uchar byte_at_position( uint pos ) throws GLib.Error
+        {
+            uchar b;
+            checked( get_byte( out b, pos ) );
+            return b;
+        }
+
+        public string latin_tag_at_position( size_t length, uint pos ) throws GLib.Error
+        {
+            string tag;
+            checked( get_latin_tag( out tag, length, pos ) );
+            return tag.dup();
+        }
     }
 
     [Compact]
@@ -395,7 +418,7 @@ namespace GIsi
     [CCode (cheader_filename = "libgisi.h", has_target = false)]
     public delegate void DebugFunc (string fmt);
 
-    [CCode (cheader_filename = "libgisi.h")]
+    [CCode (cheader_filename = "libgisi.h", has_target = true)]
     public delegate void NotifyFunc (GIsi.Message msg);
 
     [CCode (cheader_filename = "libgisi.h", has_target = false)]
@@ -453,15 +476,15 @@ namespace GIsi
 
     // ?
     [CCode (cname = "g_isi_ind_subscribe", cheader_filename = "libgisi.h")]
-    public static unowned GIsi.Pending ind_subscribe (GIsi.Modem modem, uchar resource, uchar type, GIsi.NotifyFunc notify, void* data, GLib.DestroyNotify destroy);
+    public static unowned GIsi.Pending ind_subscribe (GIsi.Modem modem, uchar resource, uchar type, owned GIsi.NotifyFunc notify );
 
     // ?
     [CCode (cname = "g_isi_ntf_subscribe", cheader_filename = "libgisi.h")]
-    public static unowned GIsi.Pending ntf_subscribe (GIsi.Modem modem, uchar resource, uchar type, GIsi.NotifyFunc notify, void* data, GLib.DestroyNotify destroy);
+    public static unowned GIsi.Pending ntf_subscribe (GIsi.Modem modem, uchar resource, uchar type, owned GIsi.NotifyFunc notify );
 
     // ?
     [CCode (cname = "g_isi_service_bind", cheader_filename = "libgisi.h")]
-    public static unowned GIsi.Pending service_bind (GIsi.Modem modem, uchar resource, uchar type, GIsi.NotifyFunc notify, void* data, GLib.DestroyNotify destroy);
+    public static unowned GIsi.Pending service_bind (GIsi.Modem modem, uchar resource, uchar type, owned GIsi.NotifyFunc notify );
 
     //FIXME: Move all to PhonetDevice
     [CCode (cname = "g_isi_phonet_new", cheader_filename = "libgisi.h")]
