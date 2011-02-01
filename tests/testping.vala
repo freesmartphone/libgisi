@@ -154,6 +154,7 @@ void test_comm_phoneinfo_query()
     mt.gcphoneinfo.readManufacturer( ( error, result ) => {
         assert( error == GIsiComm.ErrorCode.OK );
         assert( result == "Nokia" );
+        debug( @"Vendor = $result" );
         ok = true;
     } );
 
@@ -164,6 +165,7 @@ void test_comm_phoneinfo_query()
     mt.gcphoneinfo.readModel( ( error, result ) => {
         assert( error == GIsiComm.ErrorCode.OK );
         assert( result == "Nokia N900" );
+        debug( @"Model = $result" );
         ok = true;
     } );
 
@@ -171,6 +173,27 @@ void test_comm_phoneinfo_query()
 
     ok = false;
 
+    mt.gcphoneinfo.readSerial( ( error, result ) => {
+        assert( error == GIsiComm.ErrorCode.OK );
+        assert( result.has_prefix( "35" ) && result.length == 15 );
+        debug( @"IMEI = $result" );
+        ok = true;
+    } );
+
+    while ( !ok ) MainContext.default().iteration( false );
+
+    ok = false;
+
+    mt.gcphoneinfo.readVersion( ( error, result ) => {
+        assert( error == GIsiComm.ErrorCode.OK );
+        assert( result.length == 2 );
+        debug( @"Version = $result" );
+        ok = true;
+    } );
+
+    while ( !ok ) MainContext.default().iteration( false );
+
+    ok = false;
 }
 
 //===========================================================================

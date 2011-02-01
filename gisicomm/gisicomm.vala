@@ -91,6 +91,27 @@ namespace GIsiComm
                 parseSimpleString( msg, cb );
             } );
         }
+
+        public void readSerial( owned StringResultFunc cb )
+        {
+            var req = new uchar[] { GIsiClient.PhoneInfo.MessageType.SERIAL_NUMBER_READ_REQ, GIsiClient.PhoneInfo.SubblockType.SN_IMEI_PLAIN };
+
+            ll.send( req, ( msg ) => {
+                parseSimpleString( msg, cb );
+            } );
+        }
+
+        public void readVersion( owned StringResultFunc cb )
+        {
+            var req = new uchar[] { GIsiClient.PhoneInfo.MessageType.VERSION_READ_REQ, GIsiClient.PhoneInfo.SubblockType.MCUSW_VERSION };
+
+            ll.send( req, ( msg ) => {
+                parseSimpleString( msg, cb );
+            } );
+
+            // FIXME: This has more subblocks which need to be deciphered
+        }
+
     }
 } /* namespace GIsiComm */
 
