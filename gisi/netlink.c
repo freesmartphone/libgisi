@@ -43,7 +43,6 @@
 #include <glib.h>
 
 #include "netlink.h"
-#include "modem.h"
 
 #ifndef ARPHRD_PHONET
 #define ARPHRD_PHONET (820)
@@ -149,7 +148,7 @@ static void pn_netlink_link(GIsiPhonetNetlink *self, struct nlmsghdr *nlh)
 	const struct rtattr *rta;
 	int len;
 	const char *ifname = NULL;
-	GIsiPhonetLinkState st;
+	enum GIsiPhonetLinkState st;
 	unsigned interface;
 
 	ifi = NLMSG_DATA(nlh);
