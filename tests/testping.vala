@@ -41,6 +41,7 @@ class ModemTester
     public GIsiClient.SIM sim;
 
     public GIsiComm.PhoneInfo gcphoneinfo;
+    public GIsiComm.SIM gcsim;
 
     public ModemTester( string iface )
     {
@@ -207,6 +208,33 @@ void test_client_sim_bringup()
 }
 
 //===========================================================================
+void test_comm_sim_query()
+//===========================================================================
+{
+    var ok = false;
+
+    mt.gcsim = new GIsiComm.SIM( mt.modem );
+    mt.gcsim.readSPN( ( error, result ) => {
+        assert( error == GIsiComm.ErrorCode.OK );
+        //assert( result == "Nokia" );
+        debug( @"SPN = $result" );
+        ok = true;
+    } );
+
+    while ( !ok ) MainContext.default().iteration( false );
+
+    mt.gcsim.readHPLMN( ( error, result ) => {
+        assert( error == GIsiComm.ErrorCode.OK );
+        //assert( result == "Nokia" );
+        debug( @"HPLMN = $result" );
+        ok = true;
+    } );
+
+    while ( !ok ) MainContext.default().iteration( false );
+
+}
+
+//===========================================================================
 void main( string[] args )
 //===========================================================================
 {
@@ -217,6 +245,7 @@ void main( string[] args )
     Test.add_func( "/GISI/Client/PhoneInfo/Bringup", test_client_phoneinfo_bringup );
     Test.add_func( "/GISI/COMM/PhoneInfo/Query", test_comm_phoneinfo_query );
     Test.add_func( "/GISI/Client/SIM/Bringup", test_client_sim_bringup );
+    Test.add_func( "/GISI/COMM/SIM/Query", test_comm_sim_query );
 
     mt = new ModemTester( MODEM_IFACE );
 

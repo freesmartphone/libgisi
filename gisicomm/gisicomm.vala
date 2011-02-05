@@ -30,6 +30,41 @@ namespace GIsiComm
         INVALID_FORMAT,
     }
 
+    /** Helpers **/
+
+    private void checked( bool predicate ) throws GLib.Error
+    {
+        if ( !predicate )
+        {
+            throw new GLib.IOError.INVALID_DATA( "FSO" );
+        }
+    }
+
+    private void parseSimpleString( GIsi.Message msg, StringResultFunc cb )
+    {
+        if ( !msg.ok() )
+        {
+            cb( (ErrorCode) msg.error, null );
+            return;
+        }
+
+        var sbi = msg.subblock_iter_create( 2 );
+        if ( !sbi.is_valid() )
+        {
+            cb( ErrorCode.INVALID_FORMAT, null );
+            return;
+        }
+
+        try
+        {
+            cb( ErrorCode.OK, sbi.latin_tag_at_position( sbi.byte_at_position( 3 ), 4 ) );
+        }
+        catch ( Error e )
+        {
+            cb( ErrorCode.INVALID_FORMAT, null );
+        }
+    }
+
     public class PhoneInfo
     {
         private GIsiClient.PhoneInfo ll;
@@ -39,41 +74,6 @@ namespace GIsiComm
             ll = modem.phone_info_client_create();
         }
 
-        //
-        // Helpers
-        //
-        private void checked( bool predicate ) throws GLib.Error
-        {
-            if ( !predicate )
-            {
-                throw new GLib.IOError.INVALID_DATA( "FSO" );
-            }
-        }
-
-        private void parseSimpleString( GIsi.Message msg, StringResultFunc cb )
-        {
-            if ( !msg.ok() )
-            {
-                cb( (ErrorCode) msg.error, null );
-                return;
-            }
-
-            var sbi = msg.subblock_iter_create( 2 );
-            if ( !sbi.is_valid() )
-            {
-                cb( ErrorCode.INVALID_FORMAT, null );
-                return;
-            }
-
-            try
-            {
-                cb( ErrorCode.OK, sbi.latin_tag_at_position( sbi.byte_at_position( 3 ), 4 ) );
-            }
-            catch ( Error e )
-            {
-                cb( ErrorCode.INVALID_FORMAT, null );
-            }
-        }
 
         //
         // public API
@@ -116,7 +116,72 @@ namespace GIsiComm
 
             // FIXME: This has more subblocks which need to be deciphered
         }
-
     }
+
+    public class SIM
+    {
+        private GIsiClient.SIM ll;
+
+        public SIM( GIsi.Modem modem )
+        {
+            ll = modem.sim_client_create();
+            var ok = ll.ind_subscribe( GIsiClient.SIM.MessageType.IND, onIndicationReceived );
+            if ( !ok )
+            {
+                warning( "Could not subscribe to SIM indications" );
+            }
+        }
+
+        private void onIndicationReceived( GIsi.Message msg )
+        {
+            message( @"Received Indication with message $msg" );
+        }
+
+        public void readHPLMN( owned StringResultFunc cb )
+        {
+            var req = new uchar[] { GIsiClient.SIM.MessageType.NETWORK_INFO_REQ, GIsiClient.SIM.ServiceType.READ_HPLMN, 0x0 };
+            ll.send( req, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error, null );
+                    return;
+                }
+                else
+                {
+                    cb( ErrorCode.OK, "yo" );
+                }
+            } );
+        }
+
+        public void readSPN( owned StringResultFunc cb )
+        {
+            var req = new uchar[] { GIsiClient.SIM.MessageType.SERV_PROV_NAME_REQ, GIsiClient.SIM.ServiceType.SIM_ST_READ_SERV_PROV_NAME, 0x0 };
+
+            ll.send( req, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error, null );
+                    return;
+                }
+                cb( ErrorCode.OK, "FSO TELEKOM" );
+            } );
+
+            /*
+            for (i = 0; i < SIM_MAX_SPN_LENGTH; i++) {
+                uint16_t c = resp->name[i] >> 8 | resp->name[i] << 8;
+
+                if (c == 0)
+                        c = 0xFF;
+                else if (!g_ascii_isprint(c))
+                        c = '?';
+
+                spn[i + 1] = c;
+
+            } );
+            */
+        }
+    }
+
+
 } /* namespace GIsiComm */
 

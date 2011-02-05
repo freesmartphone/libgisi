@@ -47,19 +47,23 @@ namespace GIsi
         public uint timeout { [CCode (cname = "g_isi_client_set_timeout")] set; }
         public PhonetSubsystem resource { [CCode (cname = "g_isi_client_resource")] get; }
 
-        // various
+        // subscribe to indications
         [CCode (cname = "g_isi_client_ind_subscribe")]
         public bool ind_subscribe( uchar type, GIsi.NotifyFunc notify );
 
+        // subscribe to notifications
         [CCode (cname = "g_isi_client_ntf_subscribe")]
         public bool ntf_subscribe( uchar type, GIsi.NotifyFunc notify );
 
+        // various
         [CCode (cname = "g_isi_client_reset")]
         public void reset();
 
+        // send a message with the default timeout
         [CCode (cname = "g_isi_client_send")]
         public bool send( uint8[] msg, owned GIsi.NotifyFunc notify );
 
+        // send a message with a special timout
         [CCode (cname = "g_isi_client_send_with_timeout")]
         public bool send_with_timeout( uint8[] msg, uint timeout, owned GIsi.NotifyFunc notify );
 
@@ -67,11 +71,14 @@ namespace GIsi
         [CCode (cname = "g_isi_client_verify")]
         public bool verify( owned GIsi.NotifyFunc notify );
 
+        // ???
         [CCode (cname = "g_isi_client_vsend")]
         public bool vsend( uint8[] iov, owned GIsi.NotifyFunc notify );
 
+        // ???
         [CCode (cname = "g_isi_client_vsend_with_timeout")]
         public bool vsend_with_timeout( uint8[] iov, uint timeout, owned GIsi.NotifyFunc notify );
+
     }
 
     /**
@@ -80,7 +87,7 @@ namespace GIsi
      * ISI Communication Message
      **/
     [Compact]
-    [CCode (lower_case_cprefix = "g_isi_msg_", cheader_filename = "libgisi.h,call.h,gpds.h,gss.h,info.h,mtc.h,network.h,sim.h,sms.h,ss.h", free_function = "")]
+    [CCode (lower_case_cprefix = "g_isi_msg_", cheader_filename = "libgisi.h,call.h,gpds.h,gss.h,info.h,mtc.h,network.h,sim.h,simauth.h,sms.h,ss.h", free_function = "")]
     public class Message
     {
         [CCode (cname = "g_isi_msg_data", cheader_filename = "libgisi.h")]
@@ -158,6 +165,11 @@ namespace GIsi
         public GIsiClient.SIM sim_client_create()
         {
             return (GIsiClient.SIM) new GIsi.Client( this, GIsi.PhonetSubsystem.SIM );
+        }
+
+        public GIsiClient.SIMAuth sim_auth_client_create()
+        {
+            return (GIsiClient.SIMAuth) new GIsi.Client( this, GIsi.PhonetSubsystem.SIM_AUTH );
         }
 
         public GIsiClient.PhoneInfo phone_info_client_create()
@@ -399,7 +411,7 @@ namespace GIsi
         UP
     }
 
-    [CCode (cname = "guchar", cprefix = "PN_", has_type_id = false, cheader_filename = "libgisi.h,call.h,gpds.h,gss.h,info.h,mtc.h,network.h,sim.h,sms.h,ss.h")]
+    [CCode (cname = "guchar", cprefix = "PN_", has_type_id = false, cheader_filename = "libgisi.h,call.h,gpds.h,gss.h,info.h,mtc.h,network.h,sim.h,simauth.h,sms.h,ss.h")]
     public enum PhonetSubsystem
     {
         CALL,
@@ -411,6 +423,7 @@ namespace GIsi
         PHONE_INFO,
         PEP_TYPE_GPRS,
         SIM,
+        SIM_AUTH,
         SMS,
         SS,
         WRAN
@@ -479,6 +492,7 @@ namespace GIsi
     [CCode (cheader_filename = "libgisi.h")]
     public const int SOL_PNPIPE;
 
+#if 0
     // ?
     [CCode (cname = "g_isi_ind_subscribe", cheader_filename = "libgisi.h")]
     public static unowned GIsi.Pending ind_subscribe (GIsi.Modem modem, uchar resource, uchar type, owned GIsi.NotifyFunc notify );
@@ -490,6 +504,7 @@ namespace GIsi
     // ?
     [CCode (cname = "g_isi_service_bind", cheader_filename = "libgisi.h")]
     public static unowned GIsi.Pending service_bind (GIsi.Modem modem, uchar resource, uchar type, owned GIsi.NotifyFunc notify );
+#endif
 
     //FIXME: Move all to PhonetDevice
     [CCode (cname = "g_isi_phonet_new", cheader_filename = "libgisi.h")]
@@ -516,7 +531,7 @@ namespace GIsiClient
     /**
      * @class SIM
      *
-     * SIM Access
+     * SIM Information
      **/
     [Compact]
     [CCode (cname = "GIsiClient", cprefix = "SIM_", free_function = "g_isi_client_destroy", cheader_filename = "libgisi.h,sim.h")]
@@ -665,6 +680,105 @@ namespace GIsiClient
             READ_PARAMETER,
             UPDATE_PARAMETER,
             ICC,
+        }
+    }
+
+    /**
+     * @class SIMAuth
+     *
+     * SIM Information
+     **/
+    [Compact]
+    [CCode (cname = "GIsiClient", cprefix = "SIM_AUTH_", free_function = "g_isi_client_destroy", cheader_filename = "libgisi.h,simauth.h")]
+    public class SIMAuth : GIsi.Client
+    {
+        private SIMAuth();
+        public const uint TIMEOUT;
+
+        [CCode (cname = "SIM_MAX_PIN_LENGTH")]
+        public const uint MAX_PIN_LENGTH;
+        [CCode (cname = "SIM_MAX_PUK_LENGTH")]
+        public const uint MAX_PUK_LENGTH;
+
+        [CCode (cprefix = "SIM_AUTH_", cheader_filename = "simauth.h")]
+        public enum MessageType
+        {
+            PROTECTED_REQ,
+            PROTECTED_RESP,
+            UPDATE_REQ,
+            UPDATE_SUCCESS_RESP,
+            UPDATE_FAIL_RESP,
+            REQ,
+            SUCCESS_RESP,
+            FAIL_RESP,
+            STATUS_IND,
+            STATUS_REQ,
+            STATUS_RESP,
+        }
+
+        [CCode (cprefix = "SIM_AUTH_", cheader_filename = "simauth.h")]
+        public enum SubblockType
+        {
+            REQ_PIN,
+            REQ_PUK,
+        }
+
+        [CCode (cprefix = "SIM_AUTH_ERROR_", cheader_filename = "simauth.h")]
+        public enum ErrorType
+        {
+        	INVALID_PW,
+	        NEED_PUK,
+        }
+
+        [CCode (cprefix = "SIM_AUTH_IND_", cheader_filename = "simauth.h")]
+        public enum Indication
+        {
+            NEED_AUTH,
+            NEED_NO_AUTH,
+            VALID,
+            INVALID,
+            AUTHORIZED,
+            CONFIG,
+        }
+
+        [CCode (cprefix = "SIM_AUTH_IND_", cheader_filename = "simauth.h")]
+        public enum IndicationType
+        {
+            PIN,
+            PUK,
+            OK,
+        }
+
+        [CCode (cprefix = "SIM_AUTH_IND_CFG_", cheader_filename = "simauth.h")]
+        public enum Configuration
+        {
+            UNPROTECTED,
+            PROTECTED,
+        }
+
+        [CCode (cprefix = "SIM_AUTH_STATUS_RESP_", cheader_filename = "simauth.h")]
+        public enum StatusResponse
+        {
+            NEED_PIN,
+            NEED_PUK,
+            RUNNING,
+            INIT,
+        }
+
+        [CCode (cprefix = "SIM_AUTH_STATUS_RESP_RUNNING_", cheader_filename = "simauth.h")]
+        public enum StatusResponseRunningType
+        {
+            AUTHORIZED,
+            UNPROTECTED,
+            NO_SIM,
+        }
+
+        [CCode (cprefix = "SIM_AUTH_PIN_PROTECTED_", cheader_filename = "simauth.h")]
+        public enum ProtectionType
+        {
+            DISABLE,
+            ENABLE,
+            STATUS,
         }
     }
 
