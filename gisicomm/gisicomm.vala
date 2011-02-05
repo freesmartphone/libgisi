@@ -23,6 +23,7 @@
 namespace GIsiComm
 {
     public delegate void StringResultFunc( ErrorCode error, string? result );
+    public delegate void IntResultFunc( ErrorCode error, int result );
 
     public enum ErrorCode
     {
@@ -64,6 +65,12 @@ namespace GIsiComm
             cb( ErrorCode.INVALID_FORMAT, null );
         }
     }
+
+    /**
+     * @class PhoneInfo
+     *
+     * Device Information Interface
+     **/
 
     public class PhoneInfo
     {
@@ -117,6 +124,103 @@ namespace GIsiComm
             // FIXME: This has more subblocks which need to be deciphered
         }
     }
+
+    /**
+     * @class SIMAuth
+     *
+     * SIM Authorization Interface
+     **/
+
+    public class SIMAuth
+    {
+        private GIsiClient.SIMAuth ll;
+        private bool ready;
+
+        public SIMAuth( GIsi.Modem modem )
+        {
+            ll = modem.sim_auth_client_create();
+            ll.verify( onReachabilityReceived );
+        }
+
+        private void onReachabilityReceived( GIsi.Message msg )
+        {
+            if ( !msg.ok() )
+            {
+                warning( "SIM Auth subsystem not reachable" );
+                return;
+            }
+            var ok = ll.ind_subscribe( GIsiClient.SIMAuth.MessageType.STATUS_IND, onIndicationReceived );
+            if ( !ok )
+            {
+                warning( "Could not subscribe to SIM AUTH indications" );
+                return;
+            }
+
+            debug( "SIM AUTH reachable" );
+
+            // gather initial SIM status
+            queryStatus( ( error, result ) => {
+                debug( @"received SIM status result $result" );
+            } );
+
+            ready = true;
+        }
+
+        private void onIndicationReceived( GIsi.Message msg )
+        {
+            message( @"Received Indication with message $msg" );
+        }
+
+        //
+        // public API
+        //
+        public void queryStatus( owned IntResultFunc cb )
+        {
+            var req = new uchar[] { GIsiClient.SIMAuth.MessageType.STATUS_REQ, 0x0, 0x0 };
+            ll.send_with_timeout( req, GIsiClient.SIMAuth.TIMEOUT, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error, 0 );
+                    return;
+                }
+
+                switch ( msg.data[0] )
+                {
+                    case GIsiClient.SIMAuth.StatusResponse.NEED_PIN:
+                    case GIsiClient.SIMAuth.StatusResponse.NEED_PUK:
+                    case GIsiClient.SIMAuth.StatusResponse.INIT:
+                        cb( ErrorCode.OK, msg.data[0] );
+                        break;
+
+                    case GIsiClient.SIMAuth.StatusResponse.RUNNING:
+                        switch ( msg.data[1] )
+                        {
+                            case GIsiClient.SIMAuth.StatusResponseRunningType.AUTHORIZED:
+                            case GIsiClient.SIMAuth.StatusResponseRunningType.UNPROTECTED:
+                            case GIsiClient.SIMAuth.StatusResponseRunningType.NO_SIM:
+                                cb( ErrorCode.OK, msg.data[1] );
+                                break;
+
+                            default:
+                                error( "Unknown SIMAuth.StatusResponseRunningType %d", msg.data[1] );
+                                cb( ErrorCode.INVALID_FORMAT, 0 );
+                        }
+                        break;
+
+                    default:
+                        error( "Unknown SIMAuth.StatusResponse %d", msg.data[0] );
+                        cb( ErrorCode.INVALID_FORMAT, 0 );
+                        break;
+                }
+            } );
+    	}
+    }
+
+    /**
+     * @class SIM
+     *
+     * SIM Data Interface
+     **/
 
     public class SIM
     {

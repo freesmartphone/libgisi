@@ -90,8 +90,6 @@ namespace GIsi
     [CCode (lower_case_cprefix = "g_isi_msg_", cheader_filename = "libgisi.h,call.h,gpds.h,gss.h,info.h,mtc.h,network.h,sim.h,simauth.h,sms.h,ss.h", free_function = "")]
     public class Message
     {
-        [CCode (cname = "g_isi_msg_data", cheader_filename = "libgisi.h")]
-        public void* data();
         [CCode (cname = "g_isi_msg_data_get_byte", cheader_filename = "libgisi.h")]
         public bool data_get_byte( uint offset, out uchar byte );
         [CCode (cname = "g_isi_msg_data_get_struct", cheader_filename = "libgisi.h")]
@@ -100,7 +98,8 @@ namespace GIsi
         public bool data_get_word( uint offset, out uint16 word );
 
         // properties
-        public size_t data_len { [CCode (cname = "g_isi_msg_data_len", cheader_filename = "libgisi.h")] get; }
+        public void* _data { [CCode (cname = "g_isi_msg_data", cheader_filename = "libgisi.h")] get; }
+        public size_t _data_len { [CCode (cname = "g_isi_msg_data_len", cheader_filename = "libgisi.h")] get; }
         public int error { [CCode (cname = "g_isi_msg_error", cheader_filename = "libgisi.h")] get; }
         public uchar id { [CCode (cname = "g_isi_msg_id", cheader_filename = "libgisi.h")] get; }
         public uint16 object { [CCode (cname = "g_isi_msg_object", cheader_filename = "libgisi.h")] get; }
@@ -123,9 +122,25 @@ namespace GIsi
         {
             return error >= 0;
         }
+
+        public unowned uint8[] data {
+            get {
+                unowned uint8[] array = (uint8[]) _data;
+                array.length = (int)_data_len;
+                return array;
+            }
+        }
+
         public string to_string()
         {
-            return "<Message %s (%d) v%03d.%03d>".printf( resource.to_string(), (int)resource, version_major, version_minor );
+            if ( ok() )
+            {
+                return "<Message OK %s (%d) v%03d.%03d>".printf( resource.to_string(), (int)resource, version_major, version_minor );
+            }
+            else
+            {
+                return "<Message ERROR %d %s>".printf( error, strerror );
+            }
         }
     }
 
@@ -203,21 +218,21 @@ namespace GIsi
         // assorted lowlevel request functions
         //
         [CCode (cname = "g_isi_request_send", cheader_filename = "libgisi.h")]
-        public unowned GIsi.Pending request_send( uchar resource, void* buf, size_t len, uint timeout, owned GIsi.NotifyFunc notify );
+        public unowned GIsi.Pending request_send( uchar resource, uint8[] buf, uint timeout, owned GIsi.NotifyFunc notify );
         [CCode (cname = "g_isi_request_sendto", cheader_filename = "libgisi.h")]
-        public unowned GIsi.Pending request_sendto( void* dst, void* buf, size_t len, uint timeout, owned GIsi.NotifyFunc notify );
+        public unowned GIsi.Pending request_sendto( void* dst, uint8[] buf, uint timeout, owned GIsi.NotifyFunc notify );
         [CCode (cname = "g_isi_request_utid", cheader_filename = "libgisi.h")]
         public uchar request_utid (GIsi.Pending resp);
         [CCode (cname = "g_isi_request_vsend", cheader_filename = "libgisi.h")]
-        public unowned GIsi.Pending request_vsend( uchar resource, void* iov, size_t iovlen, uint timeout, owned GIsi.NotifyFunc notify );
+        public unowned GIsi.Pending request_vsend( uchar resource, uint8[] iov, uint timeout, owned GIsi.NotifyFunc notify );
         [CCode (cname = "g_isi_request_vsendto", cheader_filename = "libgisi.h")]
-        public unowned GIsi.Pending request_vsendto( void* dst, void* iov, size_t iovlen, uint timeout, owned GIsi.NotifyFunc notify );
+        public unowned GIsi.Pending request_vsendto( void* dst, uint8[] iov, uint timeout, owned GIsi.NotifyFunc notify );
         [CCode (cname = "g_isi_resource_ping", cheader_filename = "libgisi.h")]
         public unowned GIsi.Pending resource_ping( uchar resource, owned GIsi.NotifyFunc notify );
         [CCode (cname = "g_isi_response_send", cheader_filename = "libgisi.h")]
-        public int response_send( GIsi.Message req, void* buf, size_t len);
+        public int response_send( GIsi.Message req, uint8[] buf );
         [CCode (cname = "g_isi_response_vsend", cheader_filename = "libgisi.h")]
-        public int response_vsend( GIsi.Message req, void* iov, size_t iovlen);
+        public int response_vsend( GIsi.Message req, uint8[] iov );
     }
 
     /**

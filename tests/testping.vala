@@ -33,26 +33,33 @@ public static void sighandler( int signum )
 }
 
 //===========================================================================
+public static void schedule( int seconds = 3 )
+{
+    var starttime = time_t();
+
+    while ( time_t() < starttime + seconds )
+    {
+         MainContext.default().iteration( false );
+    }
+}
+
+//===========================================================================
 class ModemTester
 {
     public GIsi.Modem modem;
     public GIsi.PhonetLinkState linkstate;
     public GIsiClient.PhoneInfo phoneinfo;
+    public GIsiClient.SIMAuth simauth;
     public GIsiClient.SIM sim;
 
     public GIsiComm.PhoneInfo gcphoneinfo;
+    public GIsiComm.SIMAuth gcsimauth;
     public GIsiComm.SIM gcsim;
 
     public ModemTester( string iface )
     {
         modem = new GIsi.Modem( iface );
         linkstate = (GIsi.PhonetLinkState) 999;
-    }
-
-    public void deviceReadManufacturer()
-    {
-      	var req = new uchar[] { GIsiClient.PhoneInfo.MessageType.PRODUCT_INFO_READ_REQ, GIsiClient.PhoneInfo.SubblockType.PRODUCT_INFO_MANUFACTURER };
-        phoneinfo.send( req, onResponseReceived );
     }
 
     //
@@ -67,42 +74,6 @@ class ModemTester
     public void onClientReachabilityVerification( GIsi.Message msg )
     {
         debug( @"client reachability verification got a response: $msg" );
-        debug( "ISI message ok is %s", msg.ok().to_string() );
-    }
-
-    public void onResponseReceived( GIsi.Message msg )
-    {
-        debug( @"got a response: $msg" );
-        debug( "ISI message status is %d", msg.error );
-
-        unowned string str;
-
-        var sbi = msg.subblock_iter_create( 2 );
-        debug( "yo" );
-        debug( "iter is valid = %s", sbi.is_valid().to_string() );
-        debug( "get latin tag = %s", sbi.get_latin_tag( out str, 5, 4 ).to_string() );
-
-
-        debug( "result = %s", str );
-
-
-
-
-        debug( "next = %s", sbi.next().to_string() );
-        debug( "yo" );
-        debug( "iter is valid = %s", sbi.is_valid().to_string() );
-        debug( "next = %s", sbi.next().to_string() );
-        debug( "yo" );
-        debug( "iter is valid = %s", sbi.is_valid().to_string() );
-        debug( "next = %s", sbi.next().to_string() );
-
-        /*
-        for ( var sbi = msg.subblock_iter_create( 2 ); sbi.is_valid(); sbi.next() )
-        {
-            debug( "got one subblock iter" );
-        }
-        */
-
     }
 }
 
@@ -198,6 +169,46 @@ void test_comm_phoneinfo_query()
 }
 
 //===========================================================================
+void test_client_simauth_bringup()
+//===========================================================================
+{
+    mt.simauth = mt.modem.sim_auth_client_create();
+    assert( mt.simauth != null );
+
+    mt.simauth.verify( mt.onClientReachabilityVerification );
+}
+
+//===========================================================================
+void test_comm_simauth_query()
+//===========================================================================
+{
+    var ok = false;
+
+    mt.gcsimauth = new GIsiComm.SIMAuth( mt.modem );
+
+    schedule();
+
+    mt.gcsimauth.queryStatus( ( error, result ) => {
+        assert( error == GIsiComm.ErrorCode.OK );
+        debug( "SIM Status = 0x%0X", result );
+        ok = true;
+    } );
+
+    while ( !ok ) MainContext.default().iteration( false );
+
+    /*
+    mt.gcsimauth.readSPN( ( error, result ) => {
+        assert( error == GIsiComm.ErrorCode.OK );
+        //assert( result == "Nokia" );
+        debug( @"SPN = $result" );
+        ok = true;
+    } );
+
+    while ( !ok ) MainContext.default().iteration( false );
+    */
+}
+
+//===========================================================================
 void test_client_sim_bringup()
 //===========================================================================
 {
@@ -242,10 +253,15 @@ void main( string[] args )
 
     Test.add_func( "/GISI/Modem/Create", test_modem_create );
     Test.add_func( "/GISI/Netlink/Bringup", test_netlink_bringup );
-    Test.add_func( "/GISI/Client/PhoneInfo/Bringup", test_client_phoneinfo_bringup );
-    Test.add_func( "/GISI/COMM/PhoneInfo/Query", test_comm_phoneinfo_query );
-    Test.add_func( "/GISI/Client/SIM/Bringup", test_client_sim_bringup );
-    Test.add_func( "/GISI/COMM/SIM/Query", test_comm_sim_query );
+
+//    Test.add_func( "/GISI/Client/PhoneInfo/Bringup", test_client_phoneinfo_bringup );
+//    Test.add_func( "/GISI/COMM/PhoneInfo/Query", test_comm_phoneinfo_query );
+
+    Test.add_func( "/GISI/Client/SIMAuth/Bringup", test_client_simauth_bringup );
+    Test.add_func( "/GISI/COMM/SIMAuth/Query", test_comm_simauth_query);
+
+//    Test.add_func( "/GISI/Client/SIM/Bringup", test_client_sim_bringup );
+//    Test.add_func( "/GISI/COMM/SIM/Query", test_comm_sim_query );
 
     mt = new ModemTester( MODEM_IFACE );
 
