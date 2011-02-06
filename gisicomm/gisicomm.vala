@@ -387,6 +387,18 @@ namespace GIsiComm
         public signal void signalStrength( uint8 rssi );
         public signal void operatorName( string name );
 
+        public struct ISI_RegStatus
+        {
+            GIsiClient.Network.RegistrationStatus status;
+            GIsiClient.Network.OperatorSelectMode mode;
+            string name;
+            string lac;
+            string cid;
+            bool egprs;
+            bool hsdpa;
+            bool hsupa;
+        }
+
         public Network( GIsi.Modem modem )
         {
             client = ll = modem.network_client_create();
@@ -406,13 +418,13 @@ namespace GIsiComm
             }
         }
 
-        private void onRegistrationStatusIndicationReceived( GIsi.Message msg )
+        private ISI_RegStatus parseRegistrationStatusMessage( GIsi.Message msg )
         {
-            message( "NET Status indication received, iterating through subblocks" );
+            ISI_RegStatus result = {};
 
             for ( GIsi.SubBlockIter sbi = msg.subblock_iter_create( 2 ); sbi.is_valid(); sbi.next() )
             {
-                message( @"  have subblock with ID $(sbi.id), length $(sbi.length)" );
+                message( @"have subblock with ID $(sbi.id), length $(sbi.length)" );
 
                 switch ( sbi.id )
                 {
@@ -431,15 +443,44 @@ namespace GIsiComm
                             continue;
                         }
                         message( @"OPER = $str" );
-                        this.operatorName( str );
+                        result.name = str;
+                        break;
+
+                    case GIsiClient.Network.SubblockType.REG_INFO_COMMON:
+
+                        result.status = (GIsiClient.Network.RegistrationStatus) sbi.byte_at_position( 2 );
+                        result.mode = (GIsiClient.Network.OperatorSelectMode) sbi.byte_at_position( 3 );
+
+                        debug( @"regstatus = $(result.status)" );
+                        debug( @"regmode = $(result.mode)" );
+                        break;
+
+                    case GIsiClient.Network.SubblockType.GSM_REG_INFO:
+
+                        result.lac = "%0X".printf( sbi.word_at_position( 2 ) );
+                        result.cid = "%0X".printf( sbi.dword_at_position( 4 ) >> 16 );
+                        result.egprs = sbi.bool_at_position( 17 );
+                        result.hsdpa = sbi.bool_at_position( 20 );
+                        result.hsupa = sbi.bool_at_position( 21 );
+
+                        debug( "lac = 0x%s, cid = 0x%s", result.lac, result.cid );
+                        debug( @"edge = $(result.egprs), hsdpa = $(result.hsdpa), hsupa = $(result.hsupa)" );
                         break;
 
                     default:
                         message( @"FIXME: handle unknown subblock with ID $(sbi.id)" );
                         break;
-
                 }
             }
+
+            return result;
+        }
+
+        private void onRegistrationStatusIndicationReceived( GIsi.Message msg )
+        {
+            message( "NET Status indication received, iterating through subblocks" );
+            var status = parseRegistrationStatusMessage( msg );
+
         }
 
         private void onSignalStrengthIndicationReceived( GIsi.Message msg )

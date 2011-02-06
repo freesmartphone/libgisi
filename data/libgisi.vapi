@@ -358,7 +358,7 @@ namespace GIsi
         [CCode (cname = "g_isi_sb_iter_get_struct", cheader_filename = "libgisi.h")]
         public bool get_struct( void* ptr, size_t len, uint pos );
         [CCode (cname = "g_isi_sb_iter_get_word", cheader_filename = "libgisi.h")]
-        public bool get_word( uint16 word, uint pos );
+        public bool get_word( out uint16 word, uint pos );
         [CCode (cname = "g_isi_sb_iter_init", cheader_filename = "libgisi.h")]
         public void init( GIsi.Message msg, size_t used );
         [CCode (cname = "g_isi_sb_iter_init_full", cheader_filename = "libgisi.h")]
@@ -388,11 +388,30 @@ namespace GIsi
             }
         }
 
+        public bool bool_at_position( uint pos ) throws GLib.Error
+        {
+            return (bool) byte_at_position( pos );
+        }
+
         public uchar byte_at_position( uint pos ) throws GLib.Error
         {
-            uchar b;
-            checked( get_byte( out b, pos ) );
-            return b;
+            uchar result;
+            checked( get_byte( out result, pos ) );
+            return result;
+        }
+
+        public uint16 word_at_position( uint pos ) throws GLib.Error
+        {
+            uint16 result;
+            checked( get_word( out result, pos ) );
+            return result;
+        }
+
+        public uint32 dword_at_position( uint pos ) throws GLib.Error
+        {
+            uint32 result;
+            checked( get_dword( out result, pos ) );
+            return result;
         }
 
         public string alpha_tag_at_position( size_t length, uint pos ) throws GLib.Error
@@ -430,7 +449,7 @@ namespace GIsi
     }
 
 
-    [CCode (cprefix = "PN_LINK_", has_type_id = false, cheader_filename = "libgisi.h")]
+    [CCode (cname = "guchar", cprefix = "PN_LINK_", has_type_id = false, cheader_filename = "libgisi.h")]
     public enum PhonetLinkState
     {
         REMOVED,
@@ -1081,7 +1100,7 @@ namespace GIsiClient
         }
 
         [CCode (cname = "guint8", cprefix = "NET_", has_type_id = false, cheader_filename = "network.h")]
-        public enum MesaurementType
+        public enum MeasurementType
         {
             CURRENT_CELL_RSSI,
         }
