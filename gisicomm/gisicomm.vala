@@ -32,6 +32,80 @@ namespace GIsiComm
     }
 
     /**
+     * @class ModemAccess
+     *
+     * Covers modem and subsystems lifecycle
+     **/
+
+    public class ModemAccess
+    {
+        protected GIsi.Modem m;
+        protected bool online;
+        protected unowned GIsi.PhonetNetlink netlink;
+
+        GIsiComm.PhoneInfo info;
+        GIsiComm.SIMAuth simauth;
+        GIsiComm.SIM sim;
+        GIsiComm.Network net;
+
+        public ModemAccess( string iface )
+        {
+            m = new GIsi.Modem( iface );
+        }
+
+        public async bool connect()
+        {
+            if ( m == null )
+            {
+                return false;
+            }
+
+            netlink = m.netlink_start( ( modem, state, iface ) => {
+                online = ( state == GIsi.PhonetLinkState.UP );
+                connect.callback();
+            } );
+
+            if ( netlink == null )
+            {
+                return false;
+            }
+
+            yield;
+
+            return online;
+        }
+
+        public async void disconnect()
+        {
+            if ( m == null )
+            {
+                return;
+            }
+
+            if ( netlink != null )
+            {
+                netlink.stop();
+            }
+        }
+
+        public async bool launch()
+        {
+            info = new GIsiComm.PhoneInfo( m );
+            simauth = new GIsiComm.SIMAuth( m );
+            sim = new GIsiComm.SIM( m );
+            net = new GIsiComm.Network( m );
+
+            // give three seconds to settle things...
+            Timeout.add_seconds( 3, () => { launch.callback(); return false; } );
+            yield;
+
+            return ( info.reachable && simauth.reachable && sim.reachable && net.reachable );
+
+        }
+
+    }
+
+    /**
      * @class AbstractBaseClient
      *
      * Handles initial setup and indicator/notification subscriptions
@@ -39,6 +113,7 @@ namespace GIsiComm
 
     public abstract class AbstractBaseClient
     {
+        public bool reachable;
         protected unowned GIsi.Client client;
 
         public AbstractBaseClient()
@@ -62,8 +137,10 @@ namespace GIsiComm
             if ( !msg.ok() )
             {
                 warning( "Subsystem not reachable" );
+                reachable = false;
                 return;
             }
+            reachable = true;
             onSubsystemIsReachable();
         }
 

@@ -284,6 +284,7 @@ namespace GIsi
     [CCode (lower_case_cprefix = "g_isi_pn_netlink_", cheader_filename = "libgisi.h")]
     public class PhonetNetlink
     {
+        [CCode (cname = "g_isi_pn_netlink_stop", cheader_filename = "libgisi.h")]
         public void stop();
     }
 
