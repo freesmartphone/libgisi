@@ -257,6 +257,13 @@ namespace GIsiComm
             uint8 imsi[8];
         }
 
+        internal struct ISI_SPN
+        {
+            uint16 name[17]; /* 16 +1 */
+            uint8 disp_home;
+            uint8 disp_roam;
+        }
+
         public SIM( GIsi.Modem modem )
         {
             client = ll = modem.sim_client_create();
@@ -302,22 +309,27 @@ namespace GIsiComm
                     cb( (ErrorCode) msg.error, null );
                     return;
                 }
-                cb( ErrorCode.OK, "FSO TELEKOM" );
+
+                ISI_SPN* isispn;
+                if ( !msg.data_get_struct( 2, out isispn, sizeof(ISI_SPN) ) )
+                {
+                    cb( ErrorCode.INVALID_FORMAT, null );
+                    return;
+                }
+
+                uint8 spn[17];
+                spn[0] = '?';
+
+                for ( int i = 0; i < 16; ++i )
+                {
+                    //debug( "bytes at position %d are 0x%02X 0x%02X", i, isispn.name[i] & 0xff, isispn.name[i] >> 8 );
+                    //uint16 c = isispn->name[i] >> 8 | isispn->name[i] << 8;
+
+                    //spn[i] = ( c > 31 && c < 128 ) ? (uint8) c : '?';
+                }
+
+                cb( ErrorCode.OK, (string) spn );
             } );
-
-            /*
-            for (i = 0; i < SIM_MAX_SPN_LENGTH; i++) {
-                uint16_t c = resp->name[i] >> 8 | resp->name[i] << 8;
-
-                if (c == 0)
-                        c = 0xFF;
-                else if (!g_ascii_isprint(c))
-                        c = '?';
-
-                spn[i + 1] = c;
-
-            } );
-            */
         }
 
         public void readIMSI( owned StringResultFunc cb )
@@ -330,36 +342,34 @@ namespace GIsiComm
                     cb( (ErrorCode) msg.error, null );
                     return;
                 }
-                else
+
+                ISI_IMSI* isiimsi;
+                if ( !msg.data_get_struct( 2, out isiimsi, sizeof(ISI_IMSI) ) )
                 {
-                    ISI_IMSI* isiimsi;
-                    if ( !msg.data_get_struct( 2, out isiimsi, sizeof(ISI_IMSI) ) )
-                    {
-                        cb( ErrorCode.INVALID_FORMAT, null );
-                        return;
-                    }
-
-                    var imsi = new uint8[GIsiClient.SIM.MAX_IMSI_LENGTH+1];
-
-                    /* Ignore the low-order semi-octet of the first byte */
-                    imsi[0] = ((isiimsi->imsi[0] & 0xF0) >> 4) + '0';
-
-                    size_t j = 1;
-
-                    for ( size_t i = 1; i < isiimsi->length && j < GIsiClient.SIM.MAX_IMSI_LENGTH; ++i )
-                    {
-                        char nibble;
-
-                        imsi[j++] = (isiimsi->imsi[i] & 0x0F) + '0';
-                        nibble = (isiimsi->imsi[i] & 0xF0) >> 4;
-                        if (nibble != 0x0F)
-                                imsi[j++] = nibble + '0';
-                    }
-
-                    imsi[j] = '\0';
-
-                    cb( ErrorCode.OK, (string)imsi );
+                    cb( ErrorCode.INVALID_FORMAT, null );
+                    return;
                 }
+
+                var imsi = new uint8[GIsiClient.SIM.MAX_IMSI_LENGTH+1];
+
+                /* Ignore the low-order semi-octet of the first byte */
+                imsi[0] = ((isiimsi->imsi[0] & 0xF0) >> 4) + '0';
+
+                size_t j = 1;
+
+                for ( size_t i = 1; i < isiimsi->length && j < GIsiClient.SIM.MAX_IMSI_LENGTH; ++i )
+                {
+                    char nibble;
+
+                    imsi[j++] = (isiimsi->imsi[i] & 0x0F) + '0';
+                    nibble = (isiimsi->imsi[i] & 0xF0) >> 4;
+                    if (nibble != 0x0F)
+                            imsi[j++] = nibble + '0';
+                }
+
+                imsi[j] = '\0';
+
+                cb( ErrorCode.OK, (string)imsi );
             } );
         }
     }
