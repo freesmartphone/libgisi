@@ -51,10 +51,12 @@ class ModemTester
     public GIsiClient.PhoneInfo phoneinfo;
     public GIsiClient.SIMAuth simauth;
     public GIsiClient.SIM sim;
+    public GIsiClient.Network network;
 
     public GIsiComm.PhoneInfo gcphoneinfo;
     public GIsiComm.SIMAuth gcsimauth;
     public GIsiComm.SIM gcsim;
+    public GIsiComm.Network gcnetwork;
 
     public ModemTester( string iface )
     {
@@ -246,6 +248,35 @@ void test_comm_sim_query()
 }
 
 //===========================================================================
+void test_client_network_bringup()
+//===========================================================================
+{
+    mt.network = mt.modem.network_client_create();
+    assert( mt.network != null );
+
+    mt.network.verify( mt.onClientReachabilityVerification );
+}
+
+//===========================================================================
+void test_comm_network_query()
+//===========================================================================
+{
+    var ok = false;
+
+    mt.gcnetwork = new GIsiComm.Network( mt.modem );
+
+    /*
+    mt.gcnetwork.queryStatus( ( error, result ) => {
+        assert( error == GIsiComm.ErrorCode.OK );
+        debug( "SIM Status = 0x%0X", result );
+        ok = true;
+    } );
+    */
+
+    while ( !ok ) MainContext.default().iteration( false );
+}
+
+//===========================================================================
 void main( string[] args )
 //===========================================================================
 {
@@ -260,8 +291,11 @@ void main( string[] args )
 //    Test.add_func( "/GISI/Client/SIMAuth/Bringup", test_client_simauth_bringup );
 //    Test.add_func( "/GISI/COMM/SIMAuth/Query", test_comm_simauth_query);
 
-    Test.add_func( "/GISI/Client/SIM/Bringup", test_client_sim_bringup );
-    Test.add_func( "/GISI/COMM/SIM/Query", test_comm_sim_query );
+//    Test.add_func( "/GISI/Client/SIM/Bringup", test_client_sim_bringup );
+//    Test.add_func( "/GISI/COMM/SIM/Query", test_comm_sim_query );
+
+    Test.add_func( "/GISI/Client/Network/Bringup", test_client_network_bringup );
+    Test.add_func( "/GISI/COMM/Network/Query", test_comm_network_query );
 
     mt = new ModemTester( MODEM_IFACE );
 

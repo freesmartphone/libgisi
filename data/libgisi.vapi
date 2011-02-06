@@ -135,11 +135,11 @@ namespace GIsi
         {
             if ( ok() )
             {
-                return "<Message OK %s (%d) v%03d.%03d>".printf( resource.to_string(), (int)resource, version_major, version_minor );
+                return "<[%s (%d) v%03d.%03d]: OK, id = 0x%0X>".printf( resource.to_string(), (int)resource, version_major, version_minor, id );
             }
             else
             {
-                return "<Message ERROR %d %s>".printf( error, strerror );
+                return "<[%s (%d) v%03d.%03d]: ERROR, %s (0x%0X)>".printf( resource.to_string(), (int)resource, version_major, version_minor, strerror, error );
             }
         }
     }
@@ -192,9 +192,9 @@ namespace GIsi
             return (GIsiClient.PhoneInfo) new GIsi.Client( this, GIsi.PhonetSubsystem.PHONE_INFO );
         }
 
-        public GIsiClient.PhoneInfo network_client_create()
+        public GIsiClient.Network network_client_create()
         {
-            return (GIsiClient.PhoneInfo) new GIsi.Client( this, GIsi.PhonetSubsystem.NETWORK );
+            return (GIsiClient.Network) new GIsi.Client( this, GIsi.PhonetSubsystem.NETWORK );
         }
 
         //
@@ -377,7 +377,7 @@ namespace GIsi
 
         // properties
         public int id { [CCode (cname = "g_isi_sb_iter_get_id", cheader_filename = "libgisi.h")] get; }
-        public size_t len { [CCode (cname = "g_isi_sb_iter_get_len", cheader_filename = "libgisi.h")] get; }
+        public size_t length { [CCode (cname = "g_isi_sb_iter_get_len", cheader_filename = "libgisi.h")] get; }
 
         // synthesized convenience functions
         private void checked( bool predicate ) throws GLib.Error
@@ -393,6 +393,13 @@ namespace GIsi
             uchar b;
             checked( get_byte( out b, pos ) );
             return b;
+        }
+
+        public string alpha_tag_at_position( size_t length, uint pos ) throws GLib.Error
+        {
+            string tag;
+            checked( get_alpha_tag( out tag, length, pos ) );
+            return tag.dup();
         }
 
         public string latin_tag_at_position( size_t length, uint pos ) throws GLib.Error
@@ -564,7 +571,7 @@ namespace GIsiClient
 
         public const int MAX_IMSI_LENGTH;
 
-        [CCode (cprefix = "SIM_", has_type_id = false, cheader_filename = "sim.h")]
+        [CCode (cname = "guint8", cprefix = "SIM_", has_type_id = false, cheader_filename = "sim.h")]
         public enum IsiCause
         {
             SERV_NOT_AVAIL,
@@ -643,7 +650,7 @@ namespace GIsiClient
             SERV_FILE_NOT_AVAILABLE,
         }
 
-        [CCode (cprefix = "SIM_PB_", has_type_id = false, cheader_filename = "sim.h")]
+        [CCode (cname = "guint8", cprefix = "SIM_PB_", has_type_id = false, cheader_filename = "sim.h")]
         public enum SubblockType
         {
             INFO_REQUEST,
@@ -652,13 +659,13 @@ namespace GIsiClient
             LOCATION_SEARCH,
         }
 
-        [CCode (cprefix = "SIM_PB_", has_type_id = false, cheader_filename = "sim.h")]
+        [CCode (cname = "guint8", cprefix = "SIM_PB_", has_type_id = false, cheader_filename = "sim.h")]
         public enum PhonebookType
         {
 	        ADN,
         }
 
-        [CCode (cprefix = "SIM_PB_", has_type_id = false, cheader_filename = "sim.h")]
+        [CCode (cname = "guint8", cprefix = "SIM_PB_", has_type_id = false, cheader_filename = "sim.h")]
         public enum PhonebookTag
         {
             PB_ANR,
@@ -666,7 +673,7 @@ namespace GIsiClient
             PB_SNE,
         }
 
-        [CCode (cprefix = "SIM_", has_type_id = false, cheader_filename = "sim.h")]
+        [CCode (cname = "guint8", cprefix = "SIM_", has_type_id = false, cheader_filename = "sim.h")]
         public enum MessageType
         {
             NETWORK_INFO_REQ,
@@ -685,7 +692,7 @@ namespace GIsiClient
             COMMON_MESSAGE,
         }
 
-        [CCode (cprefix = "", has_type_id = false, cheader_filename = "sim.h")]
+        [CCode (cname = "guint8", cprefix = "", has_type_id = false, cheader_filename = "sim.h")]
         public enum ServiceType
         {
             SIM_ST_PIN,
@@ -720,7 +727,7 @@ namespace GIsiClient
         [CCode (cname = "SIM_MAX_PUK_LENGTH")]
         public const uint MAX_PUK_LENGTH;
 
-        [CCode (cprefix = "SIM_AUTH_", has_type_id = false, cheader_filename = "simauth.h")]
+        [CCode (cname = "guint8", cprefix = "SIM_AUTH_", has_type_id = false, cheader_filename = "simauth.h")]
         public enum MessageType
         {
             PROTECTED_REQ,
@@ -736,21 +743,21 @@ namespace GIsiClient
             STATUS_RESP,
         }
 
-        [CCode (cprefix = "SIM_AUTH_", has_type_id = false, cheader_filename = "simauth.h")]
+        [CCode (cname = "guint8", cprefix = "SIM_AUTH_", has_type_id = false, cheader_filename = "simauth.h")]
         public enum SubblockType
         {
             REQ_PIN,
             REQ_PUK,
         }
 
-        [CCode (cprefix = "SIM_AUTH_ERROR_", has_type_id = false, cheader_filename = "simauth.h")]
+        [CCode (cname = "guint8", cprefix = "SIM_AUTH_ERROR_", has_type_id = false, cheader_filename = "simauth.h")]
         public enum ErrorType
         {
         	INVALID_PW,
 	        NEED_PUK,
         }
 
-        [CCode (cprefix = "SIM_AUTH_IND_", has_type_id = false, cheader_filename = "simauth.h")]
+        [CCode (cname = "guint8", cprefix = "SIM_AUTH_IND_", has_type_id = false, cheader_filename = "simauth.h")]
         public enum Indication
         {
             NEED_AUTH,
@@ -761,7 +768,7 @@ namespace GIsiClient
             CONFIG,
         }
 
-        [CCode (cprefix = "SIM_AUTH_IND_", has_type_id = false, cheader_filename = "simauth.h")]
+        [CCode (cname = "guint8", cprefix = "SIM_AUTH_IND_", has_type_id = false, cheader_filename = "simauth.h")]
         public enum IndicationType
         {
             PIN,
@@ -769,14 +776,14 @@ namespace GIsiClient
             OK,
         }
 
-        [CCode (cprefix = "SIM_AUTH_IND_CFG_", has_type_id = false, cheader_filename = "simauth.h")]
+        [CCode (cname = "guint8", cprefix = "SIM_AUTH_IND_CFG_", has_type_id = false, cheader_filename = "simauth.h")]
         public enum Configuration
         {
             UNPROTECTED,
             PROTECTED,
         }
 
-        [CCode (cprefix = "SIM_AUTH_STATUS_RESP_", has_type_id = false, cheader_filename = "simauth.h")]
+        [CCode (cname = "guint8", cprefix = "SIM_AUTH_STATUS_RESP_", has_type_id = false, cheader_filename = "simauth.h")]
         public enum StatusResponse
         {
             NEED_PIN,
@@ -785,7 +792,7 @@ namespace GIsiClient
             INIT,
         }
 
-        [CCode (cprefix = "SIM_AUTH_STATUS_RESP_RUNNING_", has_type_id = false, cheader_filename = "simauth.h")]
+        [CCode (cname = "guint8", cprefix = "SIM_AUTH_STATUS_RESP_RUNNING_", has_type_id = false, cheader_filename = "simauth.h")]
         public enum StatusResponseRunningType
         {
             AUTHORIZED,
@@ -793,7 +800,7 @@ namespace GIsiClient
             NO_SIM,
         }
 
-        [CCode (cprefix = "SIM_AUTH_PIN_PROTECTED_", has_type_id = false, cheader_filename = "simauth.h")]
+        [CCode (cname = "guint8", cprefix = "SIM_AUTH_PIN_PROTECTED_", has_type_id = false, cheader_filename = "simauth.h")]
         public enum ProtectionType
         {
             DISABLE,
@@ -816,7 +823,7 @@ namespace GIsiClient
         public const uint TIMEOUT;
         public const int MAX_IMSI_LENGTH;
 
-        [CCode (cprefix = "INFO_", has_type_id = false, cheader_filename = "info.h")]
+        [CCode (cname = "guint8", cprefix = "INFO_", has_type_id = false, cheader_filename = "info.h")]
         public enum IsiCause
         {
             OK,
@@ -825,7 +832,7 @@ namespace GIsiClient
             NOT_SUPPORTED,
         }
 
-        [CCode (cprefix = "INFO_", has_type_id = false, cheader_filename = "info.h")]
+        [CCode (cname = "guint8", cprefix = "INFO_", has_type_id = false, cheader_filename = "info.h")]
         public enum MessageType
         {
             SERIAL_NUMBER_READ_REQ,
@@ -839,7 +846,7 @@ namespace GIsiClient
             COMMON_MESSAGE,
         }
 
-        [CCode (cprefix = "INFO_SB_", has_type_id = false, cheader_filename = "info.h")]
+        [CCode (cname = "guint8", cprefix = "INFO_SB_", has_type_id = false, cheader_filename = "info.h")]
         public enum SubblockType
         {
             PRODUCT_INFO_NAME,
@@ -850,26 +857,26 @@ namespace GIsiClient
             MCUSW_VERSION,
         }
 
-        [CCode (cprefix = "INFO_PRODUCT_", has_type_id = false, cheader_filename = "info.h")]
+        [CCode (cname = "guint8", cprefix = "INFO_PRODUCT_", has_type_id = false, cheader_filename = "info.h")]
         public enum ProductInfoType
         {
             NAME,
             MANUFACTURER,
         }
 
-        [CCode (cprefix = "INFO_SN_", has_type_id = false, cheader_filename = "info.h")]
+        [CCode (cname = "guint8", cprefix = "INFO_SN_", has_type_id = false, cheader_filename = "info.h")]
         public enum SerialNumberType
         {
             IMEI_PLAIN,
         }
 
-        [CCode (cprefix = "INFO_", has_type_id = false, cheader_filename = "info.h", has_type_id = false)]
+        [CCode (cname = "guint8", cprefix = "INFO_", has_type_id = false, cheader_filename = "info.h", has_type_id = false)]
         public enum VersionType
         {
             MCUSW,
         }
 
-        [CCode (cprefix = "INFO_PP_", has_type_id = false, cheader_filename = "info.h")]
+        [CCode (cname = "guint8", cprefix = "INFO_PP_", has_type_id = false, cheader_filename = "info.h")]
         public enum PPFeatureType
         {
             MAX_PDP_CONTEXTS,
@@ -896,7 +903,7 @@ namespace GIsiClient
         [CCode (cname = "NET_INVALID_TIME", cheader_filename = "network.h")]
         public const uint INVALID_TIME;
 
-        [CCode (cprefix = "NET_CAUSE_", has_type_id = false, cheader_filename = "network.h")]
+        [CCode (cname = "guint8", cprefix = "NET_CAUSE_", has_type_id = false, cheader_filename = "network.h")]
         public enum IsiCause
         {
             OK,
@@ -924,7 +931,7 @@ namespace GIsiClient
             NOT_SUPPORTED_IN_TECH,
         }
 
-        [CCode (cprefix = "NET_", has_type_id = false, cheader_filename = "network.h")]
+        [CCode (cname = "guint8", cprefix = "NET_", has_type_id = false, cheader_filename = "network.h")]
         public enum MessageType
         {
             SET_REQ,
@@ -946,7 +953,7 @@ namespace GIsiClient
             COMMON_MESSAGE,
         }
 
-        [CCode (cprefix = "NET_", has_type_id = false, cheader_filename = "network.h")]
+        [CCode (cname = "guint8", cprefix = "NET_", has_type_id = false, cheader_filename = "network.h")]
         public enum SubblockType
         {
             REG_INFO_COMMON,
@@ -962,7 +969,7 @@ namespace GIsiClient
             OPER_NAME_INFO,
         }
 
-        [CCode (cprefix = "NET_REG_STATUS_", has_type_id = false, cheader_filename = "network.h")]
+        [CCode (cname = "guint8", cprefix = "NET_REG_STATUS_", has_type_id = false, cheader_filename = "network.h")]
         public enum RegistrationStatus
         {
             HOME,
@@ -978,7 +985,7 @@ namespace GIsiClient
             NOSERV_SIM_REJECTED_BY_NW,
         }
 
-        [CCode (cprefix = "NET_OPER_STATUS_", has_type_id = false, cheader_filename = "network.h")]
+        [CCode (cname = "guint8", cprefix = "NET_OPER_STATUS_", has_type_id = false, cheader_filename = "network.h")]
         public enum OperatorStatus
         {
             UNKNOWN,
@@ -987,7 +994,7 @@ namespace GIsiClient
             FORBIDDEN,
         }
 
-        [CCode (cprefix = "NET_GSM_", has_type_id = false, cheader_filename = "network.h")]
+        [CCode (cname = "guint8", cprefix = "NET_GSM_", has_type_id = false, cheader_filename = "network.h")]
         public enum NetworkPreference
         {
             HOME_PLMN,
@@ -997,14 +1004,14 @@ namespace GIsiClient
             NO_PLMN_AVAIL,
         }
 
-        [CCode (cprefix = "NET_UMTS_", has_type_id = false, cheader_filename = "network.h")]
+        [CCode (cname = "guint8", cprefix = "NET_UMTS_", has_type_id = false, cheader_filename = "network.h")]
         public enum UmtsAvailable
         {
             NOT_AVAILABLE,
             AVAILABLE,
         }
 
-        [CCode (cprefix = "NET_GSM_BAND_", has_type_id = false, cheader_filename = "network.h")]
+        [CCode (cname = "guint8", cprefix = "NET_GSM_BAND_", has_type_id = false, cheader_filename = "network.h")]
         public enum GsmBandInfo
         {
             900_1800,
@@ -1017,7 +1024,7 @@ namespace GIsiClient
             1900_LOCKED,
         }
 
-        [CCode (cprefix = "NET_GSM_", has_type_id = false, cheader_filename = "network.h")]
+        [CCode (cname = "guint8", cprefix = "NET_GSM_", has_type_id = false, cheader_filename = "network.h")]
         public enum GsmCause
         {
             IMSI_UNKNOWN_IN_HLR,
@@ -1053,45 +1060,45 @@ namespace GIsiClient
             PROTOCOL_ERROR_UNSPECIFIED,
         }
 
-        [CCode (cprefix = "NET_CS_", has_type_id = false, cheader_filename = "network.h")]
+        [CCode (cname = "guint8", cprefix = "NET_CS_", has_type_id = false, cheader_filename = "network.h")]
         public enum CsType
         {
             GSM,
         }
 
-        [CCode (cprefix = "NET_", has_type_id = false, cheader_filename = "network.h")]
+        [CCode (cname = "guint8", cprefix = "NET_", has_type_id = false, cheader_filename = "network.h")]
         public enum RatName
         {
             GSM_RAT,
             UMTS_RAT,
         }
 
-        [CCode (cprefix = "NET_", has_type_id = false, cheader_filename = "network.h")]
+        [CCode (cname = "guint8", cprefix = "NET_", has_type_id = false, cheader_filename = "network.h")]
         public enum RatType
         {
             CURRENT_RAT,
             SUPPORTED_RATS,
         }
 
-        [CCode (cprefix = "NET_", has_type_id = false, cheader_filename = "network.h")]
+        [CCode (cname = "guint8", cprefix = "NET_", has_type_id = false, cheader_filename = "network.h")]
         public enum MesaurementType
         {
             CURRENT_CELL_RSSI,
         }
 
-        [CCode (cprefix = "NET_", has_type_id = false, cheader_filename = "network.h")]
+        [CCode (cname = "guint8", cprefix = "NET_", has_type_id = false, cheader_filename = "network.h")]
         public enum SearchMode
         {
             MANUAL_SEARCH,
         }
 
-        [CCode (cprefix = "NET_", has_type_id = false, cheader_filename = "network.h")]
+        [CCode (cname = "guint8", cprefix = "NET_", has_type_id = false, cheader_filename = "network.h")]
         public enum OperationNameType
         {
             HARDCODED_LATIN_OPER_NAME,
         }
 
-        [CCode (cprefix = "NET_SELECT_MODE_", has_type_id = false, cheader_filename = "network.h")]
+        [CCode (cname = "guint8", cprefix = "NET_SELECT_MODE_", has_type_id = false, cheader_filename = "network.h")]
         public enum OperatorSelectMode
         {
             UNKNOWN,

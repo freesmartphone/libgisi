@@ -374,5 +374,81 @@ namespace GIsiComm
         }
     }
 
+    /**
+     * @class Network
+     *
+     * Network Registration and Status Interface
+     **/
+
+    public class Network : AbstractBaseClient
+    {
+        private GIsiClient.Network ll;
+
+        public signal void signalStrength( uint8 rssi );
+        public signal void operatorName( string name );
+
+        public Network( GIsi.Modem modem )
+        {
+            client = ll = modem.network_client_create();
+        }
+
+        protected override void onSubsystemIsReachable()
+        {
+            var ok = ll.ind_subscribe( GIsiClient.Network.MessageType.RSSI_IND, onSignalStrengthIndicationReceived );
+            if ( !ok )
+            {
+                warning( "Could not subscribe to NET RSSI indications" );
+            }
+            ok = ll.ind_subscribe( GIsiClient.Network.MessageType.REG_STATUS_IND, onRegistrationStatusIndicationReceived );
+            if ( !ok )
+            {
+                warning( "Could not subscribe to NET Status indications" );
+            }
+        }
+
+        private void onRegistrationStatusIndicationReceived( GIsi.Message msg )
+        {
+            message( "NET Status indication received, iterating through subblocks" );
+
+            for ( GIsi.SubBlockIter sbi = msg.subblock_iter_create( 2 ); sbi.is_valid(); sbi.next() )
+            {
+                message( @"  have subblock with ID $(sbi.id), length $(sbi.length)" );
+
+                switch ( sbi.id )
+                {
+                    case 0xE3: /* operator display name */
+
+                        uint8 length;
+                        if ( !sbi.get_byte( out length, 5 ) )
+                        {
+                            continue;
+                        }
+                        debug( @"length = $length" );
+                        length *= 2; // UCS-2
+                        string str;
+                        if ( !sbi.get_alpha_tag( out str, length, 6 ) )
+                        {
+                            continue;
+                        }
+                        message( @"OPER = $str" );
+                        this.operatorName( str );
+                        break;
+
+                    default:
+                        message( @"FIXME: handle unknown subblock with ID $(sbi.id)" );
+                        break;
+
+                }
+            }
+        }
+
+        private void onSignalStrengthIndicationReceived( GIsi.Message msg )
+        {
+            message( "RSSI = %d", msg.data[0] );
+            this.signalStrength( msg.data[0] );
+        }
+    }
+
+
 } /* namespace GIsiComm */
 
