@@ -442,7 +442,8 @@ namespace GIsi
      **/
 
     [CCode (cname = "guchar", cprefix = "PN_DEV_", has_type_id = false, cheader_filename = "libgisi.h")]
-    public enum PhonetDevice {
+    public enum PhonetDevice
+    {
         PC,
         HOST,
         SOS

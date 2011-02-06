@@ -43,6 +43,7 @@ AC_CONFIG_FILES([
                  gisicomm/Makefile
                  data/Makefile
                  data/libgisi.pc
+                 data/gisicomm-0.0.pc
                  tests/Makefile
                 ])
 

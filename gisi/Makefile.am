@@ -29,6 +29,7 @@ libgisiinclude_DATA = \
                     client.h \
                     common.h \
                     iter.h \
+                    libgisi.h \
                     message.h \
                     modem.h \
                     netlink.h \
