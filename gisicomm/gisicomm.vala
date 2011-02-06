@@ -31,7 +31,44 @@ namespace GIsiComm
         INVALID_FORMAT,
     }
 
-    /** Helpers **/
+    /**
+     * @class AbstractBaseClient
+     *
+     * Handles initial setup and indicator/notification subscriptions
+     **/
+
+    public abstract class AbstractBaseClient
+    {
+        protected unowned GIsi.Client client;
+
+        public AbstractBaseClient()
+        {
+            Idle.add( () => {
+                onIdle(); return false;
+            } );
+        }
+
+        private void onIdle()
+        {
+            if ( client != null )
+            {
+                client.verify( onReachabilityResultReceived );
+            }
+        }
+
+        private void onReachabilityResultReceived( GIsi.Message msg )
+        {
+            message( @"Reachability result: $msg" );
+            if ( !msg.ok() )
+            {
+                warning( "Subsystem not reachable" );
+                return;
+            }
+            onSubsystemIsReachable();
+        }
+
+        protected abstract void onSubsystemIsReachable();
+    }
 
     private void checked( bool predicate ) throws GLib.Error
     {
@@ -72,15 +109,18 @@ namespace GIsiComm
      * Device Information Interface
      **/
 
-    public class PhoneInfo
+    public class PhoneInfo : AbstractBaseClient
     {
-        private GIsiClient.PhoneInfo ll;
+        protected GIsiClient.PhoneInfo ll;
 
         public PhoneInfo( GIsi.Modem modem )
         {
-            ll = modem.phone_info_client_create();
+            client = ll = modem.phone_info_client_create();
         }
 
+        protected override void onSubsystemIsReachable()
+        {
+        }
 
         //
         // public API
@@ -131,33 +171,18 @@ namespace GIsiComm
      * SIM Authorization Interface
      **/
 
-    public class SIMAuth
+    public class SIMAuth : AbstractBaseClient
     {
-        private GIsiClient.SIMAuth ll;
+        protected GIsiClient.SIMAuth ll;
         private bool ready;
 
         public SIMAuth( GIsi.Modem modem )
         {
-            ll = modem.sim_auth_client_create();
-            ll.verify( onReachabilityReceived );
+            client = ll = modem.sim_auth_client_create();
         }
 
-        private void onReachabilityReceived( GIsi.Message msg )
+        protected override void onSubsystemIsReachable()
         {
-            if ( !msg.ok() )
-            {
-                warning( "SIM Auth subsystem not reachable" );
-                return;
-            }
-            var ok = ll.ind_subscribe( GIsiClient.SIMAuth.MessageType.STATUS_IND, onIndicationReceived );
-            if ( !ok )
-            {
-                warning( "Could not subscribe to SIM AUTH indications" );
-                return;
-            }
-
-            debug( "SIM AUTH reachable" );
-
             // gather initial SIM status
             queryStatus( ( error, result ) => {
                 debug( @"received SIM status result $result" );
@@ -222,13 +247,17 @@ namespace GIsiComm
      * SIM Data Interface
      **/
 
-    public class SIM
+    public class SIM : AbstractBaseClient
     {
         private GIsiClient.SIM ll;
 
         public SIM( GIsi.Modem modem )
         {
-            ll = modem.sim_client_create();
+            client = ll = modem.sim_client_create();
+        }
+
+        protected override void onSubsystemIsReachable()
+        {
             var ok = ll.ind_subscribe( GIsiClient.SIM.MessageType.IND, onIndicationReceived );
             if ( !ok )
             {
