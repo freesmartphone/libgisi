@@ -1,7 +1,7 @@
 NULL =
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libgisi.pc gisicomm-0.0.pc.in
+pkgconfig_DATA = libgisi.pc gisicomm-0.0.pc
 
 vapidir = $(datadir)/vala/vapi
 vapi_DATA = libgisi.vapi
