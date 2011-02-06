@@ -251,6 +251,12 @@ namespace GIsiComm
     {
         private GIsiClient.SIM ll;
 
+        internal struct ISI_IMSI
+        {
+            uint8 length;
+            uint8 imsi[8];
+        }
+
         public SIM( GIsi.Modem modem )
         {
             client = ll = modem.sim_client_create();
@@ -313,8 +319,50 @@ namespace GIsiComm
             } );
             */
         }
-    }
 
+        public void readIMSI( owned StringResultFunc cb )
+        {
+            var req = new uchar[] { GIsiClient.SIM.MessageType.IMSI_REQ_READ_IMSI, GIsiClient.SIM.ServiceType.READ_IMSI };
+
+            ll.send( req, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error, null );
+                    return;
+                }
+                else
+                {
+                    ISI_IMSI* isiimsi;
+                    if ( !msg.data_get_struct( 2, out isiimsi, sizeof(ISI_IMSI) ) )
+                    {
+                        cb( ErrorCode.INVALID_FORMAT, null );
+                        return;
+                    }
+
+                    var imsi = new uint8[GIsiClient.SIM.MAX_IMSI_LENGTH+1];
+
+                    /* Ignore the low-order semi-octet of the first byte */
+                    imsi[0] = ((isiimsi->imsi[0] & 0xF0) >> 4) + '0';
+
+                    size_t j = 1;
+
+                    for ( size_t i = 1; i < isiimsi->length && j < GIsiClient.SIM.MAX_IMSI_LENGTH; ++i )
+                    {
+                        char nibble;
+
+                        imsi[j++] = (isiimsi->imsi[i] & 0x0F) + '0';
+                        nibble = (isiimsi->imsi[i] & 0xF0) >> 4;
+                        if (nibble != 0x0F)
+                                imsi[j++] = nibble + '0';
+                    }
+
+                    imsi[j] = '\0';
+
+                    cb( ErrorCode.OK, (string)imsi );
+                }
+            } );
+        }
+    }
 
 } /* namespace GIsiComm */
 

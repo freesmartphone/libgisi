@@ -195,17 +195,6 @@ void test_comm_simauth_query()
     } );
 
     while ( !ok ) MainContext.default().iteration( false );
-
-    /*
-    mt.gcsimauth.readSPN( ( error, result ) => {
-        assert( error == GIsiComm.ErrorCode.OK );
-        //assert( result == "Nokia" );
-        debug( @"SPN = $result" );
-        ok = true;
-    } );
-
-    while ( !ok ) MainContext.default().iteration( false );
-    */
 }
 
 //===========================================================================
@@ -233,6 +222,7 @@ void test_comm_sim_query()
     } );
 
     while ( !ok ) MainContext.default().iteration( false );
+    ok = false;
 
     mt.gcsim.readHPLMN( ( error, result ) => {
         assert( error == GIsiComm.ErrorCode.OK );
@@ -242,7 +232,17 @@ void test_comm_sim_query()
     } );
 
     while ( !ok ) MainContext.default().iteration( false );
+    ok = false;
 
+    mt.gcsim.readIMSI( ( error, result ) => {
+        assert( error == GIsiComm.ErrorCode.OK );
+        //assert( result == "Nokia" );
+        debug( @"IMSI = $result" );
+        ok = true;
+    } );
+
+    while ( !ok ) MainContext.default().iteration( false );
+    ok = false;
 }
 
 //===========================================================================
@@ -257,11 +257,11 @@ void main( string[] args )
 //    Test.add_func( "/GISI/Client/PhoneInfo/Bringup", test_client_phoneinfo_bringup );
 //    Test.add_func( "/GISI/COMM/PhoneInfo/Query", test_comm_phoneinfo_query );
 
-    Test.add_func( "/GISI/Client/SIMAuth/Bringup", test_client_simauth_bringup );
-    Test.add_func( "/GISI/COMM/SIMAuth/Query", test_comm_simauth_query);
+//    Test.add_func( "/GISI/Client/SIMAuth/Bringup", test_client_simauth_bringup );
+//    Test.add_func( "/GISI/COMM/SIMAuth/Query", test_comm_simauth_query);
 
-//    Test.add_func( "/GISI/Client/SIM/Bringup", test_client_sim_bringup );
-//    Test.add_func( "/GISI/COMM/SIM/Query", test_comm_sim_query );
+    Test.add_func( "/GISI/Client/SIM/Bringup", test_client_sim_bringup );
+    Test.add_func( "/GISI/COMM/SIM/Query", test_comm_sim_query );
 
     mt = new ModemTester( MODEM_IFACE );
 
