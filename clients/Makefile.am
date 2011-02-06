@@ -7,7 +7,6 @@ libgisiinclude_DATA = \
   mtc.h \
   network.h \
   sim.h \
+  simauth.h \
   sms.h \
   ss.h
-
-
