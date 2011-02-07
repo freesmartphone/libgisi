@@ -251,7 +251,6 @@ namespace GIsiComm
     public class SIMAuth : AbstractBaseClient
     {
         protected GIsiClient.SIMAuth ll;
-        private bool ready;
 
         public SIMAuth( GIsi.Modem modem )
         {
@@ -265,7 +264,12 @@ namespace GIsiComm
                 debug( @"received SIM status result $result" );
             } );
 
-            ready = true;
+            // subscribe to indications
+            var ok = ll.ind_subscribe( GIsiClient.SIMAuth.MessageType.STATUS_IND, onIndicationReceived );
+            if ( !ok )
+            {
+                warning( "Could not subscribe to SIM indications" );
+            }
         }
 
         private void onIndicationReceived( GIsi.Message msg )
@@ -588,8 +592,8 @@ namespace GIsiComm
 
                     case GIsiClient.Network.SubblockType.GSM_REG_INFO:
 
-                        result.lac = "%0X".printf( sbi.word_at_position( 2 ) );
-                        result.cid = "%0X".printf( sbi.dword_at_position( 4 ) >> 16 );
+                        result.lac = "%04X".printf( sbi.word_at_position( 2 ) );
+                        result.cid = "%04X".printf( sbi.dword_at_position( 4 ) >> 16 );
                         result.egprs = sbi.bool_at_position( 17 );
                         result.hsdpa = sbi.bool_at_position( 20 );
                         result.hsupa = sbi.bool_at_position( 21 );
