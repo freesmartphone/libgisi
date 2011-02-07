@@ -43,10 +43,10 @@ namespace GIsiComm
         protected bool online;
         protected unowned GIsi.PhonetNetlink netlink;
 
-        GIsiComm.PhoneInfo info;
-        GIsiComm.SIMAuth simauth;
-        GIsiComm.SIM sim;
-        GIsiComm.Network net;
+        public GIsiComm.PhoneInfo info;
+        public GIsiComm.SIMAuth simauth;
+        public GIsiComm.SIM sim;
+        public GIsiComm.Network net;
 
         public ModemAccess( string iface )
         {
@@ -304,18 +304,72 @@ namespace GIsiComm
                                 break;
 
                             default:
-                                error( "Unknown SIMAuth.StatusResponseRunningType %d", msg.data[1] );
+                                error( "Unknown SIMAuth.StatusResponseRunningType 0x%0X", msg.data[1] );
                                 cb( ErrorCode.INVALID_FORMAT, 0 );
                         }
                         break;
 
                     default:
-                        error( "Unknown SIMAuth.StatusResponse %d", msg.data[0] );
+                        error( "Unknown SIMAuth.StatusResponse 0x%0Xd", msg.data[0] );
                         cb( ErrorCode.INVALID_FORMAT, 0 );
                         break;
                 }
             } );
     	}
+
+        public void sendPin( string pin, owned IntResultFunc cb )
+        {
+            var req = new uchar[] { GIsiClient.SIMAuth.MessageType.REQ, GIsiClient.SIMAuth.SubblockType.REQ_PIN,
+                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                            		0x00, 0x00, 0x00, 0x00 };
+
+            uchar* p = req;
+
+            GLib.Memory.copy( p+2, pin.data, pin.length );
+
+            ll.send_with_timeout( req, GIsiClient.SIMAuth.TIMEOUT, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error, 0 );
+                    return;
+                }
+
+                switch ( msg.id )
+                {
+                    case GIsiClient.SIMAuth.MessageType.FAIL_RESP:
+                        switch ( msg.data[0] )
+                        {
+                            case GIsiClient.SIMAuth.ErrorType.INVALID_PW:
+                            case GIsiClient.SIMAuth.ErrorType.NEED_PUK:
+                                cb( ErrorCode.OK, msg.data[0] );
+                                break;
+
+                            default:
+                                error( "Unknown SIMAuth.IsiCause 0x%0X", msg.data[0] );
+                                cb( ErrorCode.INVALID_FORMAT, 0 );
+                        }
+                        break;
+
+                    case GIsiClient.SIMAuth.MessageType.SUCCESS_RESP:
+                        switch ( msg.data[0] )
+                        {
+                            case GIsiClient.SIMAuth.IndicationType.OK:
+                                cb( ErrorCode.OK, msg.data[0] );
+                                break;
+
+                            default:
+                                error( "Unknown SIMAuth.IndicationType 0x%0X", msg.data[0] );
+                                cb( ErrorCode.INVALID_FORMAT, 0 );
+                        }
+                        break;
+
+                    default:
+                        error( "Unknown Send PIN response message ID 0x%0X", msg.id );
+                        cb( ErrorCode.INVALID_FORMAT, 0 );
+                }
+            } );
+        }
     }
 
     /**
