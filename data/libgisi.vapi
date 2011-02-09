@@ -355,7 +355,7 @@ namespace GIsi
         [CCode (cname = "g_isi_sb_iter_get_latin_tag", cheader_filename = "libgisi.h")]
         public bool get_latin_tag( out unowned string ascii, size_t len, uint pos );
         [CCode (cname = "g_isi_sb_iter_get_oper_code", cheader_filename = "libgisi.h")]
-        public bool get_oper_code( string mcc, string mnc, uint pos );
+        public bool get_oper_code( [CCode (array_length = false)] uint8[] mcc, [CCode (array_length = false)] uint8[] mnc, uint pos );
         [CCode (cname = "g_isi_sb_iter_get_struct", cheader_filename = "libgisi.h")]
         public bool get_struct( void* ptr, size_t len, uint pos );
         [CCode (cname = "g_isi_sb_iter_get_word", cheader_filename = "libgisi.h")]
@@ -427,6 +427,15 @@ namespace GIsi
             string tag;
             checked( get_latin_tag( out tag, length, pos ) );
             return tag.dup();
+        }
+
+        public void oper_code_at_position( out string mcc, out string mnc, uint pos ) throws GLib.Error
+        {
+            var a = new uint8[4];
+            var b = new uint8[4];
+            checked( get_oper_code( a, b, pos ) );
+            mcc = (string) a;
+            mnc = (string) b;
         }
     }
 

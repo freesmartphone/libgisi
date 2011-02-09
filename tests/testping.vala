@@ -267,7 +267,13 @@ void test_comm_network_query()
 
     mt.gcnetwork.queryStatus( ( error, result ) => {
         assert( error == GIsiComm.ErrorCode.OK );
-        //debug( "SIM Status = 0x%0X", result );
+        debug( "Provider = %s (%s%s) in %s.%s", result.name, result.mcc, result.mnc, result.lac, result.cid );
+        ok = true;
+    } );
+
+    mt.gcnetwork.queryStrength( ( error, result ) => {
+        assert( error == GIsiComm.ErrorCode.OK );
+        debug( "RSSI = %d", result );
         ok = true;
     } );
 

@@ -557,6 +557,9 @@ namespace GIsiComm
             string name;
             string lac;
             string cid;
+            string mcc;
+            string mnc;
+            uint band;
             bool egprs;
             bool hsdpa;
             bool hsupa;
@@ -625,6 +628,30 @@ namespace GIsiComm
 
                         result.lac = "%04X".printf( sbi.word_at_position( 2 ) );
                         result.cid = "%04X".printf( sbi.dword_at_position( 4 ) >> 16 );
+
+                        sbi.oper_code_at_position( out result.mcc, out result.mnc, 8 );
+                        debug( @"mccmnc = $(result.mcc)$(result.mnc)" );
+
+                        switch ( sbi.byte_at_position( 11 ) )
+                        {
+                            case 1:
+                                result.band = 900;
+                                break;
+                            case 2:
+                                result.band = 1800;
+                                break;
+                            case 4:
+                                result.band = 1900;
+                                break;
+                            case 8:
+                                result.band = 850;
+                                break;
+                            default:
+                                result.band = 0;
+                                break;
+                        }
+                        debug( @"band = $(result.band)" );
+
                         result.egprs = sbi.bool_at_position( 17 );
                         result.hsdpa = sbi.bool_at_position( 20 );
                         result.hsupa = sbi.bool_at_position( 21 );
@@ -671,6 +698,30 @@ namespace GIsiComm
 
                 var status = parseRegistrationStatusMessage( msg );
                 cb( ErrorCode.OK, status );
+            } );
+        }
+
+        public void queryStrength( owned IntResultFunc cb )
+        {
+            var req = new uchar[] { GIsiClient.Network.MessageType.RSSI_GET_REQ, GIsiClient.Network.CsType.GSM, GIsiClient.Network.MeasurementType.CURRENT_CELL_RSSI };
+
+            ll.send( req, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error, -1 );
+                    return;
+                }
+
+                for ( GIsi.SubBlockIter sbi = msg.subblock_iter_create( 2 ); sbi.is_valid(); sbi.next() )
+                {
+                    message( @"Have subblock with ID $(sbi.id), length $(sbi.length)" );
+
+                    if ( sbi.id == GIsiClient.Network.SubblockType.RSSI_CURRENT )
+                    {
+                        cb( ErrorCode.OK, sbi.byte_at_position( 2 ) );
+                        break;
+                    }
+                }
             } );
         }
     }
