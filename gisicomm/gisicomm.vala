@@ -22,6 +22,7 @@
 
 namespace GIsiComm
 {
+    public delegate void VoidResultFunc( ErrorCode error );
     public delegate void StringResultFunc( ErrorCode error, string? result );
     public delegate void IntResultFunc( ErrorCode error, int result );
     public delegate void IsiRegStatusResultFunc( ErrorCode error, Network.ISI_RegStatus? status );
@@ -722,6 +723,28 @@ namespace GIsiComm
                         break;
                     }
                 }
+            } );
+        }
+
+        public void registerAutomatic( bool force, owned VoidResultFunc cb )
+        {
+            var req = new uchar[] {
+                GIsiClient.Network.MessageType.SET_REQ,
+                0x00,  /* Registered in another protocol? */
+                0x01,  /* Sub-block count */
+                GIsiClient.Network.SubblockType.OPERATOR_INFO_COMMON,
+                0x04,  /* Sub-block length */
+                force ? GIsiClient.Network.OperatorSelectMode.USER_RESELECTION : GIsiClient.Network.OperatorSelectMode.AUTOMATIC,
+                0x00  /* Index not used */
+            };
+
+            ll.send_with_timeout( req, GIsiClient.Network.SET_TIMEOUT, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error );
+                    return;
+                }
+                cb( ErrorCode.OK );
             } );
         }
     }
