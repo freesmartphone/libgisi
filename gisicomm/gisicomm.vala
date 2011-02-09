@@ -429,7 +429,19 @@ namespace GIsiComm
                 }
                 else
                 {
-                    cb( ErrorCode.OK, "yo" );
+                    uint8 digits12 = msg.data[2];
+                    uint8 digits3 = msg.data[3] & 0x0F;
+                    uint8 digits45 = msg.data[4];
+
+                    uchar result[6];
+                    result[0] = '0' + ( digits12 & 0xF );
+                    result[1] = '0' + ( digits12 >> 4 );
+                    result[2] = '0' + digits3;
+                    result[3] = '0' + ( digits45 & 0xF );
+                    result[4] = '0' + ( digits45 >> 4 );
+                    result[5] = '\0';
+
+                    cb( ErrorCode.OK, (string)result );
                 }
             } );
         }

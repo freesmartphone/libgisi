@@ -228,7 +228,7 @@ void test_comm_sim_query()
 
     mt.gcsim.readHPLMN( ( error, result ) => {
         assert( error == GIsiComm.ErrorCode.OK );
-        //assert( result == "Nokia" );
+        assert( result.has_prefix( "262" ) );
         debug( @"HPLMN = $result" );
         ok = true;
     } );
@@ -238,7 +238,7 @@ void test_comm_sim_query()
 
     mt.gcsim.readIMSI( ( error, result ) => {
         assert( error == GIsiComm.ErrorCode.OK );
-        //assert( result == "Nokia" );
+        assert( result.has_prefix( "262" ) );
         debug( @"IMSI = $result" );
         ok = true;
     } );
@@ -292,7 +292,7 @@ void main( string[] args )
 //    Test.add_func( "/GISI/COMM/SIMAuth/Query", test_comm_simauth_query);
 
 //    Test.add_func( "/GISI/Client/SIM/Bringup", test_client_sim_bringup );
-//    Test.add_func( "/GISI/COMM/SIM/Query", test_comm_sim_query );
+    Test.add_func( "/GISI/COMM/SIM/Query", test_comm_sim_query );
 
 //    Test.add_func( "/GISI/Client/Network/Bringup", test_client_network_bringup );
 //    Test.add_func( "/GISI/COMM/Network/Query", test_comm_network_query );
