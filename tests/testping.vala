@@ -265,13 +265,11 @@ void test_comm_network_query()
 
     mt.gcnetwork = new GIsiComm.Network( mt.modem );
 
-    /*
     mt.gcnetwork.queryStatus( ( error, result ) => {
         assert( error == GIsiComm.ErrorCode.OK );
-        debug( "SIM Status = 0x%0X", result );
+        //debug( "SIM Status = 0x%0X", result );
         ok = true;
     } );
-    */
 
     while ( !ok ) MainContext.default().iteration( false );
 }
@@ -292,10 +290,10 @@ void main( string[] args )
 //    Test.add_func( "/GISI/COMM/SIMAuth/Query", test_comm_simauth_query);
 
 //    Test.add_func( "/GISI/Client/SIM/Bringup", test_client_sim_bringup );
-    Test.add_func( "/GISI/COMM/SIM/Query", test_comm_sim_query );
+//    Test.add_func( "/GISI/COMM/SIM/Query", test_comm_sim_query );
 
-//    Test.add_func( "/GISI/Client/Network/Bringup", test_client_network_bringup );
-//    Test.add_func( "/GISI/COMM/Network/Query", test_comm_network_query );
+    Test.add_func( "/GISI/Client/Network/Bringup", test_client_network_bringup );
+    Test.add_func( "/GISI/COMM/Network/Query", test_comm_network_query );
 
     mt = new ModemTester( MODEM_IFACE );
 

@@ -24,6 +24,7 @@ namespace GIsiComm
 {
     public delegate void StringResultFunc( ErrorCode error, string? result );
     public delegate void IntResultFunc( ErrorCode error, int result );
+    public delegate void IsiRegStatusResultFunc( ErrorCode error, Network.ISI_RegStatus? status );
 
     public enum ErrorCode
     {
@@ -568,6 +569,9 @@ namespace GIsiComm
 
         protected override void onSubsystemIsReachable()
         {
+            // FIXME: For Debugging only
+            return;
+
             var ok = ll.ind_subscribe( GIsiClient.Network.MessageType.RSSI_IND, onSignalStrengthIndicationReceived );
             if ( !ok )
             {
@@ -586,7 +590,7 @@ namespace GIsiComm
 
             for ( GIsi.SubBlockIter sbi = msg.subblock_iter_create( 2 ); sbi.is_valid(); sbi.next() )
             {
-                message( @"have subblock with ID $(sbi.id), length $(sbi.length)" );
+                message( @"Have subblock with ID $(sbi.id), length $(sbi.length)" );
 
                 switch ( sbi.id )
                 {
@@ -649,6 +653,25 @@ namespace GIsiComm
         {
             message( "RSSI = %d", msg.data[0] );
             this.signalStrength( msg.data[0] );
+        }
+
+        //
+        // public API
+        //
+        public void queryStatus( owned IsiRegStatusResultFunc cb )
+        {
+            var req = new uchar[] { GIsiClient.Network.MessageType.REG_STATUS_GET_REQ };
+
+            ll.send( req, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error, null );
+                    return;
+                }
+
+                var status = parseRegistrationStatusMessage( msg );
+                cb( ErrorCode.OK, status );
+            } );
         }
     }
 
