@@ -27,8 +27,8 @@ namespace GIsiComm
 
     public enum ErrorCode
     {
-        OK,
-        INVALID_FORMAT,
+        OK = 0xE0,
+        INVALID_FORMAT = 0xE1,
     }
 
     /**
@@ -427,22 +427,30 @@ namespace GIsiComm
                     cb( (ErrorCode) msg.error, null );
                     return;
                 }
-                else
+                if ( msg.data[1] == GIsiClient.SIM.IsiCause.SERV_DATA_NOT_AVAIL )
                 {
-                    uint8 digits12 = msg.data[2];
-                    uint8 digits3 = msg.data[3] & 0x0F;
-                    uint8 digits45 = msg.data[4];
-
-                    uchar result[6];
-                    result[0] = '0' + ( digits12 & 0xF );
-                    result[1] = '0' + ( digits12 >> 4 );
-                    result[2] = '0' + digits3;
-                    result[3] = '0' + ( digits45 & 0xF );
-                    result[4] = '0' + ( digits45 >> 4 );
-                    result[5] = '\0';
-
-                    cb( ErrorCode.OK, (string)result );
+                    cb( ErrorCode.OK, "<unknown>" );
+                    return;
                 }
+                if ( msg.data[1] != GIsiClient.SIM.IsiCause.SERV_OK )
+                {
+                    cb( (ErrorCode) msg.data[1], null );
+                    return;
+                }
+
+                uint8 digits12 = msg.data[2];
+                uint8 digits3 = msg.data[3] & 0x0F;
+                uint8 digits45 = msg.data[4];
+
+                uchar result[6];
+                result[0] = '0' + ( digits12 & 0xF );
+                result[1] = '0' + ( digits12 >> 4 );
+                result[2] = '0' + digits3;
+                result[3] = '0' + ( digits45 & 0xF );
+                result[4] = '0' + ( digits45 >> 4 );
+                result[5] = '\0';
+
+                cb( ErrorCode.OK, (string)result );
             } );
         }
 
@@ -456,6 +464,16 @@ namespace GIsiComm
                     cb( (ErrorCode) msg.error, null );
                     return;
                 }
+                if ( msg.data[1] == GIsiClient.SIM.IsiCause.SERV_DATA_NOT_AVAIL )
+                {
+                    cb( ErrorCode.OK, "<unknown>" );
+                    return;
+                }
+                if ( msg.data[1] != GIsiClient.SIM.IsiCause.SERV_OK )
+                {
+                    cb( (ErrorCode) msg.data[1], null );
+                    return;
+                }
 
                 ISI_SPN* isispn;
                 if ( !msg.data_get_struct( 2, out isispn, sizeof(ISI_SPN) ) )
@@ -465,14 +483,11 @@ namespace GIsiComm
                 }
 
                 uint8 spn[17];
-                spn[0] = '?';
 
                 for ( int i = 0; i < 16; ++i )
                 {
-                    //debug( "bytes at position %d are 0x%02X 0x%02X", i, isispn.name[i] & 0xff, isispn.name[i] >> 8 );
-                    //uint16 c = isispn->name[i] >> 8 | isispn->name[i] << 8;
-
-                    //spn[i] = ( c > 31 && c < 128 ) ? (uint8) c : '?';
+                    uint16 c = isispn->name[i] >> 8 | isispn->name[i] << 8;
+                    spn[i] = ( c > 31 && c < 128 ) ? (uint8) c : '?';
                 }
 
                 cb( ErrorCode.OK, (string) spn );
