@@ -197,6 +197,11 @@ namespace GIsi
             return (GIsiClient.Network) new GIsi.Client( this, GIsi.PhonetSubsystem.NETWORK );
         }
 
+        public GIsiClient.Call call_client_create()
+        {
+            return (GIsiClient.Call) new GIsi.Client( this, GIsi.PhonetSubsystem.CALL );
+        }
+
         //
         // assorted modem functions
         //
@@ -1136,6 +1141,417 @@ namespace GIsiClient
             AUTOMATIC,
             USER_RESELECTION,
             NO_SELECTION,
+        }
+    }
+
+    /**
+     * @class Call
+     *
+     * Call Handling
+     **/
+    [Compact]
+    [CCode (cname = "GIsiClient", cprefix = "CALL_", free_function = "g_isi_client_destroy", cheader_filename = "libgisi.h,call.h")]
+    public class Call : GIsi.Client
+    {
+        private Call();
+
+        [CCode (cname = "guint8", cprefix = "CALL_", has_type_id = false, cheader_filename = "call.h")]
+        public enum MessageType
+        {
+            CREATE_REQ,
+            CREATE_RESP,
+            COMING_IND,
+            MO_ALERT_IND,
+            MT_ALERT_IND,
+            WAITING_IND,
+            ANSWER_REQ,
+            ANSWER_RESP,
+            RELEASE_REQ,
+            RELEASE_RESP,
+            RELEASE_IND,
+            TERMINATED_IND,
+            STATUS_REQ,
+            STATUS_RESP,
+            STATUS_IND,
+            SERVER_STATUS_IND,
+            CONTROL_REQ,
+            CONTROL_RESP,
+            CONTROL_IND,
+            MODE_SWITCH_REQ,
+            MODE_SWITCH_RESP,
+            MODE_SWITCH_IND,
+            DTMF_SEND_REQ,
+            DTMF_SEND_RESP,
+            DTMF_STOP_REQ,
+            DTMF_STOP_RESP,
+            DTMF_STATUS_IND,
+            DTMF_TONE_IND,
+            RECONNECT_IND,
+            PROPERTY_GET_REQ,
+            PROPERTY_GET_RESP,
+            PROPERTY_SET_REQ,
+            PROPERTY_SET_RESP,
+            PROPERTY_SET_IND,
+            EMERGENCY_NBR_CHECK_REQ,
+            EMERGENCY_NBR_CHECK_RESP,
+            EMERGENCY_NBR_GET_REQ,
+            EMERGENCY_NBR_GET_RESP,
+            EMERGENCY_NBR_MODIFY_REQ,
+            EMERGENCY_NBR_MODIFY_RESP0x25,
+            GSM_NOTIFICATION_IND,
+            GSM_USER_TO_USER_REQ,
+            GSM_USER_TO_USER_RESP,
+            GSM_USER_TO_USER_IND,
+            GSM_BLACKLIST_CLEAR_REQ,
+            GSM_BLACKLIST_CLEAR_RESP,
+            GSM_BLACKLIST_TIMER_IND,
+            GSM_DATA_CH_INFO_IND,
+            GSM_CCP_GET_REQ,
+            GSM_CCP_GET_RESP,
+            GSM_CCP_CHECK_REQ,
+            GSM_CCP_CHECK_RESP,
+            GSM_COMING_REJ_IND,
+            GSM_RAB_IND,
+            GSM_IMMEDIATE_MODIFY_IND,
+            CREATE_NO_SIMATK_REQ,
+            GSM_SS_DATA_IND,
+            TIMER_REQ,
+            TIMER_RESP,
+            TIMER_NTF,
+            TIMER_IND,
+            TIMER_RESET_REQ,
+            TIMER_RESET_RESP,
+            EMERGENCY_NBR_IND,
+            SERVICE_DENIED_IND,
+            RELEASE_END_REQ,
+            RELEASE_END_RESP,
+            USER_CONNECT_IND,
+            AUDIO_CONNECT_IND,
+            KODIAK_ALLOW_CTRL_REQ,
+            KODIAK_ALLOW_CTRL_RESP,
+            SERVICE_ACTIVATE_IND,
+            SERVICE_ACTIVATE_REQ,
+            SERVICE_ACTIVATE_RESP,
+            SIM_ATK_IND,
+            CONTROL_OPER_IND,
+            TEST_STATUS_IND,
+            SIM_ATK_INFO_IND,
+            SECURITY_IND,
+            MEDIA_HANDLE_REQ,
+            MEDIA_HANDLE_RESP,
+            COMMON_MESSAGE,
+        }
+
+        [CCode (cname = "guint8", cprefix = "CALL_STATUS_", has_type_id = false, cheader_filename = "call.h")]
+        public enum Status
+        {
+            IDLE,
+            CREATE,
+            COMING,
+            PROCEEDING,
+            MO_ALERTING,
+            MT_ALERTING,
+            WAITING,
+            ANSWERED,
+            ACTIVE,
+            MO_RELEASE,
+            MT_RELEASE,
+            HOLD_INITIATED,
+            HOLD,
+            RETRIEVE_INITIATED0x0D,
+            RECONNECT_PENDING,
+            TERMINATED,
+            SWAP_INITIATED,
+        }
+
+        [CCode (cname = "guint8", cprefix = "CALL_CAUSE_", has_type_id = false, cheader_filename = "call.h")]
+        public enum IsiCause
+        {
+            NO_CAUSE,
+            NO_CALL,
+            TIMEOUT,
+            RELEASE_BY_USER,
+            BUSY_USER_REQUEST,
+            ERROR_REQUEST,
+            COST_LIMIT_REACHED,
+            CALL_ACTIVE,
+            NO_CALL_ACTIVE,
+            INVALID_CALL_MODE,
+            SIGNALLING_FAILURE,
+            TOO_LONG_ADDRESS,
+            INVALID_ADDRESS,
+            EMERGENCY,
+            NO_TRAFFIC_CHANNEL,
+            NO_COVERAGE,
+            CODE_REQUIRED,
+            NOT_ALLOWED,
+            NO_DTMF,
+            CHANNEL_LOSS,
+            FDN_NOT_OK,
+            USER_TERMINATED,
+            BLACKLIST_BLOCKED,
+            BLACKLIST_DELAYED,
+            NUMBER_NOT_FOUND,
+            NUMBER_CANNOT_REMOVE0x19,
+            EMERGENCY_FAILURE,
+            CS_SUSPENDED,
+            DCM_DRIVE_MODE,
+            MULTIMEDIA_NOT_ALLOWED0x1D,
+            SIM_REJECTED,
+            NO_SIM,
+            SIM_LOCK_OPERATIVE,
+            SIMATKCC_REJECTED,
+            SIMATKCC_MODIFIED,
+            DTMF_INVALID_DIGIT,
+            DTMF_SEND_ONGOING,
+            CS_INACTIVE,
+            SECURITY_MODE,
+            TRACFONE_FAILED,
+            TRACFONE_WAIT_FAILED0x28,
+            TRACFONE_CONF_FAILED0x29,
+            TEMPERATURE_LIMIT,
+            KODIAK_POC_FAILED,
+            NOT_REGISTERED,
+            CS_CALLS_ONLY,
+            VOIP_CALLS_ONLY,
+            LIMITED_CALL_ACTIVE0x2F,
+            LIMITED_CALL_NOT_ALLOWED0x30,
+            SECURE_CALL_NOT_POSSIBLE0x31,
+            INTERCEPT,
+        }
+
+        [CCode (cname = "guint8", cprefix = "CALL_GSM_CAUSE_", has_type_id = false, cheader_filename = "call.h")]
+        public enum GsmCause
+        {
+            UNASSIGNED_NUMBER0x01,
+            NO_ROUTE,
+            CH_UNACCEPTABLE0x06,
+            OPER_BARRING,
+            NORMAL,
+            USER_BUSY,
+            NO_USER_RESPONSE0x12,
+            ALERT_NO_ANSWER0x13,
+            CALL_REJECTED,
+            NUMBER_CHANGED,
+            NON_SELECT_CLEAR0x1A,
+            DEST_OUT_OF_ORDER0x1B,
+            INVALID_NUMBER,
+            FACILITY_REJECTED0x1D,
+            RESP_TO_STATUS,
+            NORMAL_UNSPECIFIED0x1F,
+            NO_CHANNEL,
+            NETW_OUT_OF_ORDER0x26,
+            TEMPORARY_FAILURE0x29,
+            CONGESTION,
+            ACCESS_INFO_DISC0x2B,
+            CHANNEL_NA,
+            RESOURCES_NA,
+            QOS_NA,
+            FACILITY_UNSUBS0x32,
+            COMING_BARRED_CUG0x37,
+            BC_UNAUTHORIZED0x39,
+            BC_NA,
+            SERVICE_NA,
+            BEARER_NOT_IMPL0x41,
+            ACM_MAX,
+            FACILITY_NOT_IMPL0x45,
+            ONLY_RDI_BC,
+            SERVICE_NOT_IMPL0x4F,
+            INVALID_TI,
+            NOT_IN_CUG,
+            INCOMPATIBLE_DEST0x58,
+            INV_TRANS_NET_SEL0x5B,
+            SEMANTICAL_ERR,
+            INVALID_MANDATORY0x60,
+            MSG_TYPE_INEXIST0x61,
+            MSG_TYPE_INCOMPAT0x62,
+            IE_NON_EXISTENT0x63,
+            COND_IE_ERROR,
+            MSG_INCOMPATIBLE0x65,
+            TIMER_EXPIRY,
+            PROTOCOL_ERROR,
+            INTERWORKING,
+        }
+
+        [CCode (cname = "guint8", cprefix = "CALL_CAUSE_TYPE_", has_type_id = false, cheader_filename = "call.h")]
+        public enum CauseType
+        {
+            DEFAULT,
+            CLIENT,
+            SERVER,
+            NETWORK,
+        }
+
+        [CCode (cname = "guint8", cprefix = "CALL_", has_type_id = false, cheader_filename = "call.h")]
+        public enum SubblockType
+        {
+            ORIGIN_ADDRESS,
+            ORIGIN_SUBADDRESS,
+            DESTINATION_ADDRESS,
+            DESTINATION_SUBADDRESS,
+            DESTINATION_PRE_ADDRESS,
+            DESTINATION_POST_ADDRESS,
+            MODE,
+            CAUSE,
+            OPERATION,
+            STATUS,
+            STATUS_INFO,
+            ALERTING_INFO,
+            RELEASE_INFO,
+            ORIGIN_INFO,
+            DTMF_DIGIT,
+            DTMF_STRING,
+            DTMF_BCD_STRING,
+            DTMF_INFO,
+            PROPERTY_INFO,
+            EMERGENCY_NUMBER,
+            DTMF_STATUS,
+            DTMF_TONE,
+            GSM_CUG_INFO,
+            GSM_ALERTING_PATTERN,
+            GSM_DEFLECTION_ADDRESS,
+            GSM_DEFLECTION_SUBADDRESS0xA3,
+            GSM_REDIRECTING_ADDRESS,
+            GSM_REDIRECTING_SUBADDRESS0xA5,
+            GSM_REMOTE_ADDRESS,
+            GSM_REMOTE_SUBADDRESS,
+            GSM_USER_TO_USER_INFO,
+            GSM_DIAGNOSTICS,
+            GSM_SS_DIAGNOSTICS,
+            GSM_NEW_DESTINATION,
+            GSM_CCBS_INFO,
+            GSM_ADDRESS_OF_B,
+            GSM_SUBADDRESS_OF_B,
+            GSM_NOTIFY,
+            GSM_SS_NOTIFY,
+            GSM_SS_CODE,
+            GSM_SS_STATUS,
+            GSM_SS_NOTIFY_INDICATOR,
+            GSM_SS_HOLD_INDICATOR,
+            GSM_SS_ECT_INDICATOR,
+            GSM_DATA_CH_INFO,
+            DESTINATION_CS_ADDRESS,
+            GSM_CCP,
+            GSM_RAB_INFO,
+            GSM_FNUR_INFO,
+            GSM_CAUSE_OF_NO_CLI,
+            GSM_MM_CAUSE,
+            GSM_EVENT_INFO,
+            GSM_DETAILED_CAUSE,
+            GSM_SS_DATA,
+            TIMER,
+            GSM_ALS_INFO,
+            STATE_AUTO_CHANGE,
+            EMERGENCY_NUMBER_INFO,
+            STATUS_MODE,
+            ADDR_AND_STATUS_INFO,
+            DTMF_TIMERS,
+            NAS_SYNC_INDICATOR,
+            NW_CAUSE,
+            TRACFONE_RESULT,
+            KODIAK_POC,
+            DISPLAY_NUMBER,
+            DESTINATION_URI,
+            ORIGIN_URI,
+            URI,
+            SYSTEM_INFO,
+            SYSTEMS,
+            VOIP_TIMER,
+            REDIRECTING_URI,
+            REMOTE_URI,
+            DEFLECTION_URI,
+            TRANSFER_INFO,
+            FORWARDING_INFO,
+            ID_INFO,
+            TEST_CALL,
+            AUDIO_CONF_INFO,
+            SECURITY_INFO,
+            SINGLE_TIMERS,
+            MEDIA_INFO,
+            MEDIA_HANDLE,
+            MODE_CHANGE_INFO,
+            ADDITIONAL_PARAMS,
+            DSAC_INFO,
+        }
+
+        [CCode (cname = "guint8", cprefix = "CALL_ID_", has_type_id = false, cheader_filename = "call.h")]
+        public enum Index
+        {
+            NONE,
+            @1,
+            @2,
+            @3,
+            @4,
+            @5,
+            @6,
+            @7,
+            CONFERENCE,
+            WAITING,
+            HOLD,
+            ACTIVE,
+            ALL,
+        }
+
+        [CCode (cname = "guint8", cprefix = "CALL_", has_type_id = false, cheader_filename = "call.h")]
+        public enum Mode
+        {
+            MODE_EMERGENCY,
+            MODE_SPEECH,
+            GSM_MODE_ALS_LINE_1,
+            GSM_MODE_ALS_LINE_2,
+        }
+
+        [CCode (cname = "guint8", cprefix = "CALL_MODE_", has_type_id = false, cheader_filename = "call.h")]
+        public enum ModeType
+        {
+            INFO_NONE,
+            ORIGINATOR,
+        }
+
+        [CCode (cname = "guint8", cprefix = "CALL_", has_type_id = false, cheader_filename = "call.h")]
+        public enum PresentationType
+        {
+            PRESENTATION_ALLOWED,
+            PRESENTATION_RESTRICTED,
+            GSM_PRESENTATION_DEFAULT,
+        }
+
+        [CCode (cname = "guint8", cprefix = "CALL_", has_type_id = false, cheader_filename = "call.h")]
+        public enum Operation
+        {
+            OP_HOLD,
+            OP_RETRIEVE,
+            OP_SWAP,
+            OP_CONFERENCE_BUILD,
+            OP_CONFERENCE_SPLIT,
+            OP_DATA_RATE_CHANGE,
+            GSM_OP_CUG,
+            GSM_OP_TRANSFER,
+            GSM_OP_DEFLECT,
+            GSM_OP_CCBS,
+            GSM_OP_UUS1,
+            GSM_OP_UUS2,
+            GSM_OP_UUS3,
+        }
+
+        /*
+        enum {
+            CALL_GSM_OP_UUS_REQUIRED,
+        }
+        enum {
+        CALL_DTMF_ENABLE_TONE_IND_SEND0x01,
+        CALL_DTMF_DISABLE_TONE_IND_SEND0x02,
+        }
+        */
+
+        [CCode (cname = "guint8", cprefix = "CALL_STATUS_MODE_", has_type_id = false, cheader_filename = "call.h")]
+        public enum StatusMode
+        {
+            DEFAULT,
+            ADDR,
+            ADDR_AND_ORIGIN0x02,
+            POC,
+            VOIP_ADDR,
         }
     }
 }
