@@ -819,6 +819,75 @@ namespace GIsiComm
         }
     }
 
+    /**
+     * @class Call
+     *
+     * Call Handling
+     **/
+
+    public class Call : AbstractBaseClient
+    {
+        private GIsiClient.Call ll;
+
+        public Call( GIsi.Modem modem )
+        {
+            client = ll = modem.call_client_create();
+        }
+
+        protected override void onSubsystemIsReachable()
+        {
+            /*
+            COMING_IND,
+            MO_ALERT_IND,
+            MT_ALERT_IND,
+            WAITING_IND,
+            ANSWER_REQ,
+            ANSWER_RESP,
+            RELEASE_REQ,
+            RELEASE_RESP,
+            RELEASE_IND,
+            TERMINATED_IND,
+            STATUS_REQ,
+            STATUS_RESP,
+            STATUS_IND,
+            SERVER_STATUS_IND,
+            CONTROL_REQ,
+            CONTROL_RESP,
+            CONTROL_IND,
+            MODE_SWITCH_REQ,
+            MODE_SWITCH_RESP,
+            MODE_SWITCH_IND,
+            DTMF_SEND_REQ,
+            DTMF_SEND_RESP,
+            DTMF_STOP_REQ,
+            DTMF_STOP_RESP,
+            DTMF_STATUS_IND,
+            DTMF_TONE_IND,
+            RECONNECT_IND,
+            */
+
+            var ok = ll.ind_subscribe( GIsiClient.Call.MessageType.COMING_IND, onComingIndicationReceived );
+            if ( !ok )
+            {
+                warning( "Could not subscribe to CALL_COMING_IND" );
+            }
+            ok = ll.ind_subscribe( GIsiClient.Call.MessageType.MT_ALERT_IND, onMTAlertIndicationReceived );
+            if ( !ok )
+            {
+                warning( "Could not subscribe to CALL_MT_ALERT_IND" );
+            }
+        }
+
+        public void onComingIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        public void onMTAlertIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+    }
 
 } /* namespace GIsiComm */
 

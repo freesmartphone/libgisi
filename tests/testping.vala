@@ -52,11 +52,13 @@ class ModemTester
     public GIsiClient.SIMAuth simauth;
     public GIsiClient.SIM sim;
     public GIsiClient.Network network;
+    public GIsiClient.Call call;
 
     public GIsiComm.PhoneInfo gcphoneinfo;
     public GIsiComm.SIMAuth gcsimauth;
     public GIsiComm.SIM gcsim;
     public GIsiComm.Network gcnetwork;
+    public GIsiComm.Call gccall;
 
     public ModemTester( string iface )
     {
@@ -292,6 +294,36 @@ void test_comm_network_query()
 }
 
 //===========================================================================
+void test_client_call_bringup()
+//===========================================================================
+{
+    mt.call = mt.modem.call_client_create();
+    assert( mt.call != null );
+
+    mt.call.verify( mt.onClientReachabilityVerification );
+}
+
+//===========================================================================
+void test_comm_call_query()
+//===========================================================================
+{
+    var ok = false;
+
+    mt.gccall = new GIsiComm.Call( mt.modem );
+
+    /*
+
+    mt.gccall.queryStatus( ( error, result ) => {
+        assert( error == GIsiComm.ErrorCode.OK );
+        //ok = true;
+    } );
+    *
+    */
+    while ( !ok ) MainContext.default().iteration( false );
+    ok = false;
+}
+
+//===========================================================================
 void main( string[] args )
 //===========================================================================
 {
@@ -309,8 +341,11 @@ void main( string[] args )
 //    Test.add_func( "/GISI/Client/SIM/Bringup", test_client_sim_bringup );
 //    Test.add_func( "/GISI/COMM/SIM/Query", test_comm_sim_query );
 
-    Test.add_func( "/GISI/Client/Network/Bringup", test_client_network_bringup );
-    Test.add_func( "/GISI/COMM/Network/Query", test_comm_network_query );
+//    Test.add_func( "/GISI/Client/Network/Bringup", test_client_network_bringup );
+//    Test.add_func( "/GISI/COMM/Network/Query", test_comm_network_query );
+
+    Test.add_func( "/GISI/Client/Call/Bringup", test_client_call_bringup );
+    Test.add_func( "/GISI/COMM/Call/Query", test_comm_call_query );
 
     mt = new ModemTester( MODEM_IFACE );
 
