@@ -270,10 +270,21 @@ void test_comm_network_query()
         debug( "Provider = %s (%s%s) in %s.%s", result.name, result.mcc, result.mnc, result.lac, result.cid );
         ok = true;
     } );
+    while ( !ok ) MainContext.default().iteration( false );
+    ok = false;
 
     mt.gcnetwork.queryStrength( ( error, result ) => {
         assert( error == GIsiComm.ErrorCode.OK );
         debug( "RSSI = %d", result );
+        ok = true;
+    } );
+
+    while ( !ok ) MainContext.default().iteration( false );
+    ok = false;
+
+    mt.gcnetwork.listProviders( ( error, result ) => {
+        assert( error == GIsiComm.ErrorCode.OK );
+        //debug( "RSSI = %d", result );
         ok = true;
     } );
 

@@ -26,6 +26,7 @@ namespace GIsiComm
     public delegate void StringResultFunc( ErrorCode error, string? result );
     public delegate void IntResultFunc( ErrorCode error, int result );
     public delegate void IsiRegStatusResultFunc( ErrorCode error, Network.ISI_RegStatus? status );
+    public delegate void IsiProviderArrayResultFunc( ErrorCode error, Network.ISI_Provider[] providers );
 
     public enum ErrorCode
     {
@@ -566,6 +567,15 @@ namespace GIsiComm
             bool hsupa;
         }
 
+        public struct ISI_Provider
+        {
+            GIsiClient.Network.OperatorStatus status;
+            string name;
+            string mcc;
+            string mnc;
+            int technology;
+        }
+
         public Network( GIsi.Modem modem )
         {
             client = ll = modem.network_client_create();
@@ -723,6 +733,66 @@ namespace GIsiComm
                         break;
                     }
                 }
+            } );
+        }
+
+        public void listProviders( owned IsiProviderArrayResultFunc cb )
+        {
+            var req = new uchar[] {
+                GIsiClient.Network.MessageType.AVAILABLE_GET_REQ,
+                GIsiClient.Network.SearchMode.MANUAL_SEARCH,
+                0x01,  /* Sub-block count */
+                GIsiClient.Network.SubblockType.GSM_BAND_INFO,
+                0x04,  /* Sub-block length */
+                GIsiClient.Network.GsmBandInfo.ALL_SUPPORTED_BANDS,
+                0x00
+            };
+
+            ll.send_with_timeout( req, GIsiClient.Network.SCAN_TIMEOUT, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error, null );
+                    return;
+                }
+
+                var providers = new ISI_Provider[] {};
+                uint index = 0;
+
+                for ( GIsi.SubBlockIter sbi = msg.subblock_iter_create( 2 ); sbi.is_valid(); sbi.next() )
+                {
+                    message( @"Have subblock with ID $(sbi.id), length $(sbi.length)" );
+
+                    switch ( sbi.id )
+                    {
+                        case GIsiClient.Network.SubblockType.AVAIL_NETWORK_INFO_COMMON:
+
+                            var newp = ISI_Provider();
+                            newp.name = sbi.alpha_tag_at_position( sbi.byte_at_position( 5 ) * 2, 6 );
+                            newp.status = (GIsiClient.Network.OperatorStatus) sbi.byte_at_position( 2 );
+                            providers += newp;
+                            break;
+
+                        case GIsiClient.Network.SubblockType.DETAILED_NETWORK_INFO:
+
+                            ISI_Provider* p = &providers[index];
+                            sbi.oper_code_at_position( out p.mcc, out p.mnc, 2 );
+                            p.technology = sbi.byte_at_position( 7 ) != 0 ? 2 : 3;
+                            index++;
+
+                            break;
+
+                        default:
+                            message( @"FIXME: handle unknown subblock with ID $(sbi.id)" );
+                            break;
+                    }
+                }
+
+                foreach ( var prov in providers )
+                {
+                    debug( @"found provider $(prov.name) [$(prov.mcc)$(prov.mnc)] with status $(prov.status)" );
+                }
+
+                cb( ErrorCode.OK, providers );
             } );
         }
 
