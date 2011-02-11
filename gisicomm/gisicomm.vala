@@ -829,6 +829,16 @@ namespace GIsiComm
     {
         private GIsiClient.Call ll;
 
+        public struct ISI_CallStatus
+        {
+            GIsiClient.Call.Status status;
+            uint8 ntype;
+            string number;
+            bool incoming;
+        }
+
+        public signal void statusChanged( ISI_CallStatus status );
+
         public Call( GIsi.Modem modem )
         {
             client = ll = modem.call_client_create();
@@ -866,6 +876,8 @@ namespace GIsiComm
             RECONNECT_IND,
             */
 
+
+            /*
             var ok = ll.ind_subscribe( GIsiClient.Call.MessageType.COMING_IND, onComingIndicationReceived );
             if ( !ok )
             {
@@ -876,16 +888,66 @@ namespace GIsiComm
             {
                 warning( "Could not subscribe to CALL_MT_ALERT_IND" );
             }
+            */
+            var ok = ll.ind_subscribe( GIsiClient.Call.MessageType.STATUS_IND, onStatusIndicationReceived );
+            if ( !ok )
+            {
+                warning( "Could not subscribe to CALL_STATUS_IND" );
+            }
+            ok = ll.ind_subscribe( GIsiClient.Call.MessageType.TERMINATED_IND, onTerminatedIndicationReceived );
+            if ( !ok )
+            {
+                warning( "Could not subscribe to CALL_TERMINATED_IND" );
+            }
         }
 
-        public void onComingIndicationReceived( GIsi.Message msg )
+        private ISI_CallStatus parseCallStatus( GIsi.Message msg )
         {
-            message( @"$msg received" );
+            var status = ISI_CallStatus();
+
+            for ( GIsi.SubBlockIter sbi = msg.subblock_iter_create( 2 ); sbi.is_valid(); sbi.next() )
+            {
+                message( @"Have subblock with ID $(sbi.id), length $(sbi.length)" );
+
+                switch ( sbi.id )
+                {
+                    case GIsiClient.Call.SubblockType.MODE:
+                        debug( "call mode is 0x%0X", sbi.byte_at_position( 2 ) );
+                        debug( "call mode_info is 0x%0X", sbi.byte_at_position( 3 ) );
+                        break;
+
+                    case GIsiClient.Call.SubblockType.STATUS:
+                        debug( "call status is 0x%0X", sbi.byte_at_position( 2 ) );
+                        status.status = (GIsiClient.Call.Status) sbi.byte_at_position( 2 );
+                        break;
+
+                    case GIsiClient.Call.SubblockType.ORIGIN_ADDRESS:
+                        status.ntype = sbi.byte_at_position( 2 ) | 0x80;
+                        uint8 presentation = sbi.byte_at_position( 3 );
+                        status.number = sbi.alpha_tag_at_position( sbi.byte_at_position( 5 ) * 2, 6 );
+                        debug( "call origin is type %d, presentation %d, number %s", status.ntype, presentation, status.number );
+                        break;
+
+                    default:
+                        debug( @"FIXME: handle unhandled subblock with id $(sbi.id)" );
+                        break;
+                }
+            }
+
+            return status;
         }
 
-        public void onMTAlertIndicationReceived( GIsi.Message msg )
+        private void onStatusIndicationReceived( GIsi.Message msg )
         {
             message( @"$msg received" );
+            this.statusChanged( parseCallStatus( msg ) );
+        }
+
+        private void onTerminatedIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+            msg.dump();
+            //parseCallStatus( msg );
         }
     }
 

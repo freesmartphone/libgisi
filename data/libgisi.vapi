@@ -131,6 +131,15 @@ namespace GIsi
             }
         }
 
+        public void dump()
+        {
+            for ( GIsi.SubBlockIter sbi = subblock_iter_create( 2 ); sbi.is_valid(); sbi.next() )
+            {
+                GLib.message( @"Have subblock with ID $(sbi.id), length $(sbi.length)" );
+            }
+        }
+
+
         public string to_string()
         {
             if ( ok() )
@@ -1493,46 +1502,57 @@ namespace GIsiClient
             ALL,
         }
 
-        [CCode (cname = "guint8", cprefix = "CALL_", has_type_id = false, cheader_filename = "call.h")]
+        [CCode (cname = "guint8", cprefix = "CALL_MODE_", has_type_id = false, cheader_filename = "call.h")]
         public enum Mode
         {
-            MODE_EMERGENCY,
-            MODE_SPEECH,
-            GSM_MODE_ALS_LINE_1,
-            GSM_MODE_ALS_LINE_2,
+            EMERGENCY,
+            SPEECH,
+            [CCode (cname = "GSM_MODE_ALS_LINE_1")]
+            GSM_ALS_LINE_1,
+            [CCode (cname = "GSM_MODE_ALS_LINE_2")]
+            GSM_ALS_LINE_2,
         }
 
-        [CCode (cname = "guint8", cprefix = "CALL_MODE_", has_type_id = false, cheader_filename = "call.h")]
-        public enum ModeType
+        [CCode (cname = "guint8", cprefix = "CALL_MODE_INFO", has_type_id = false, cheader_filename = "call.h")]
+        public enum ModeInfo
         {
-            INFO_NONE,
+            NONE,
+            [CCode (cname = "CALL_MODE_ORIGINATOR")]
             ORIGINATOR,
         }
 
-        [CCode (cname = "guint8", cprefix = "CALL_", has_type_id = false, cheader_filename = "call.h")]
+        [CCode (cname = "guint8", cprefix = "CALL_PRESENTATION_", has_type_id = false, cheader_filename = "call.h")]
         public enum PresentationType
         {
-            PRESENTATION_ALLOWED,
-            PRESENTATION_RESTRICTED,
-            GSM_PRESENTATION_DEFAULT,
+            ALLOWED,
+            RESTRICTED,
+            [CCode (cname = "GSM_PRESENTATION_DEFAULT")]
+            GSM_DEFAULT,
         }
 
-        [CCode (cname = "guint8", cprefix = "CALL_", has_type_id = false, cheader_filename = "call.h")]
+        [CCode (cname = "guint8", cprefix = "CALL_OP_", has_type_id = false, cheader_filename = "call.h")]
         public enum Operation
         {
-            OP_HOLD,
-            OP_RETRIEVE,
-            OP_SWAP,
-            OP_CONFERENCE_BUILD,
-            OP_CONFERENCE_SPLIT,
-            OP_DATA_RATE_CHANGE,
-            GSM_OP_CUG,
-            GSM_OP_TRANSFER,
-            GSM_OP_DEFLECT,
-            GSM_OP_CCBS,
-            GSM_OP_UUS1,
-            GSM_OP_UUS2,
-            GSM_OP_UUS3,
+            HOLD,
+            RETRIEVE,
+            SWAP,
+            CONFERENCE_BUILD,
+            CONFERENCE_SPLIT,
+            DATA_RATE_CHANGE,
+            [CCode (cname = "GSM_OP_CUG")]
+            GSM_CUG,
+            [CCode (cname = "GSM_OP_TRANSFER")]
+            GSM_TRANSFER,
+            [CCode (cname = "GSM_OP_DEFLECT")]
+            GSM_DEFLECT,
+            [CCode (cname = "GSM_OP_CCBS")]
+            GSM_CCBS,
+            [CCode (cname = "GSM_OP_UUS1")]
+            GSM_UUS1,
+            [CCode (cname = "GSM_OP_UUS2")]
+            GSM_UUS2,
+            [CCode (cname = "GSM_OP_UUS3")]
+            GSM_UUS3,
         }
 
         /*
