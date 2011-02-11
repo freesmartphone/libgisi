@@ -915,20 +915,22 @@ namespace GIsiComm
                 switch ( sbi.id )
                 {
                     case GIsiClient.Call.SubblockType.MODE:
-                        debug( "call mode is 0x%0X", sbi.byte_at_position( 2 ) );
-                        debug( "call mode_info is 0x%0X", sbi.byte_at_position( 3 ) );
+                        GIsiClient.Call.Mode m = (GIsiClient.Call.Mode) sbi.byte_at_position( 2 );
+                        GIsiClient.Call.ModeInfo mi = (GIsiClient.Call.ModeInfo) sbi.byte_at_position( 3 );
+                        debug( @"call mode is $m (0x%0X)", m );
+                        debug( @"call mode_info is $mi (0x%0X)", mi );
                         break;
 
                     case GIsiClient.Call.SubblockType.STATUS:
-                        debug( "call status is 0x%0X", sbi.byte_at_position( 2 ) );
                         status.status = (GIsiClient.Call.Status) sbi.byte_at_position( 2 );
+                        debug( @"call status is $(status.status) (0x%0X)", sbi.byte_at_position( 2 ) );
                         break;
 
                     case GIsiClient.Call.SubblockType.ORIGIN_ADDRESS:
                         status.ntype = sbi.byte_at_position( 2 ) | 0x80;
                         uint8 presentation = sbi.byte_at_position( 3 );
                         status.number = sbi.alpha_tag_at_position( sbi.byte_at_position( 5 ) * 2, 6 );
-                        debug( "call origin is type %d, presentation %d, number %s", status.ntype, presentation, status.number );
+                        debug( "call origin is type 0x%0X, presentation 0x%0X, number %s", status.ntype, presentation, status.number );
                         break;
 
                     default:
