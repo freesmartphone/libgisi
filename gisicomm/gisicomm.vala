@@ -23,6 +23,7 @@
 namespace GIsiComm
 {
     public delegate void VoidResultFunc( ErrorCode error );
+    public delegate void BoolResultFunc( ErrorCode error, bool yesOrNo );
     public delegate void StringResultFunc( ErrorCode error, string? result );
     public delegate void IntResultFunc( ErrorCode error, int result );
     public delegate void IsiRegStatusResultFunc( ErrorCode error, Network.ISI_RegStatus? status );
@@ -50,6 +51,7 @@ namespace GIsiComm
         public GIsiComm.SIMAuth simauth;
         public GIsiComm.SIM sim;
         public GIsiComm.Network net;
+        public GIsiComm.Call call;
 
         public ModemAccess( string iface )
         {
@@ -97,6 +99,7 @@ namespace GIsiComm
             simauth = new GIsiComm.SIMAuth( m );
             sim = new GIsiComm.SIM( m );
             net = new GIsiComm.Network( m );
+            call = new GIsiComm.Call( m );
 
             // give three seconds to settle things...
             Timeout.add_seconds( 3, () => { launch.callback(); return false; } );
@@ -948,6 +951,50 @@ namespace GIsiComm
             message( @"$msg received" );
             msg.dump();
             //parseCallStatus( msg );
+        }
+
+        //
+        // public API
+        //
+
+        public void initiateVoiceCall( string number, uint8 ntype, GIsiClient.Call.PresentationType presentation, VoidResultFunc cb )
+        {
+            size_t addr_len = number.length;
+            size_t sub_len = (6 + 2 * addr_len + 3) & ~3;
+            size_t offset = 3 + 4 + 8 + 6;
+
+            var req = new uchar[] {
+                GIsiClient.Call.MessageType.CREATE_REQ,
+                0,              /* No id */
+                3,              /* Mode, Clir, Number */
+                /* MODE SB */
+                GIsiClient.Call.SubblockType.MODE, 4, GIsiClient.Call.Mode.SPEECH, GIsiClient.Call.ModeInfo.NONE,
+                /* ORIGIN_INFO SB */
+                GIsiClient.Call.SubblockType.ORIGIN_INFO, 8, presentation, 0, 0, 0, 0, 0,
+                /* DESTINATION_ADDRESS SB */
+                GIsiClient.Call.SubblockType.DESTINATION_ADDRESS,
+                (uchar)sub_len,
+                (uchar)ntype & 0x7F,
+                0, 0,
+                (uchar)addr_len,
+                0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+                0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0
+            };
+
+            size_t rlen = 3 + 4 + 8 + sub_len;
+            for ( int i = 0; i < addr_len; ++i )
+            {
+                req[offset + 2 * i + 1] = number[i];
+            }
+
+            ll.send( req, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error );
+                    return;
+                }
+                cb( ErrorCode.OK );
+            } );
         }
     }
 

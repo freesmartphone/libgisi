@@ -26,7 +26,7 @@
  * The low level communication services
  **/
 
-[CCode (cprefix = "GIsi", lower_case_cprefix = "g_isi_")]
+[CCode (cprefix = "GIsi", lower_case_cprefix = "g_isi_", cheader_filename = "libgisi.h")]
 namespace GIsi
 {
     /**
@@ -159,7 +159,7 @@ namespace GIsi
      * Basic class for interacting with a GISI modem
      **/
     [Compact]
-    [CCode (free_function = "g_isi_modem_destroy", cheader_filename = "libgisi.h")]
+    [CCode (free_function = "g_isi_modem_destroy", cheader_filename = "libgisi.h,clients.h")]
     public class Modem {
 
         //
@@ -1513,7 +1513,7 @@ namespace GIsiClient
             GSM_ALS_LINE_2,
         }
 
-        [CCode (cname = "guint8", cprefix = "CALL_MODE_INFO", has_type_id = false, cheader_filename = "call.h")]
+        [CCode (cname = "guint8", cprefix = "CALL_MODE_INFO_", has_type_id = false, cheader_filename = "call.h")]
         public enum ModeInfo
         {
             NONE,
@@ -1526,7 +1526,7 @@ namespace GIsiClient
         {
             ALLOWED,
             RESTRICTED,
-            [CCode (cname = "GSM_PRESENTATION_DEFAULT")]
+            [CCode (cname = "CALL_GSM_PRESENTATION_DEFAULT")]
             GSM_DEFAULT,
         }
 

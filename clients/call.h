@@ -358,12 +358,12 @@ enum call_mode {
 	CALL_GSM_MODE_ALS_LINE_2 =		0xA2,
 };
 
-enum {
+enum call_mode_info {
 	CALL_MODE_INFO_NONE =			0x00,
 	CALL_MODE_ORIGINATOR =			0x01,
 };
 
-enum {
+enum call_presentation_mode {
 	CALL_PRESENTATION_ALLOWED =		0x00,
 	CALL_PRESENTATION_RESTRICTED =		0x01,
 	CALL_GSM_PRESENTATION_DEFAULT =		0x07,
