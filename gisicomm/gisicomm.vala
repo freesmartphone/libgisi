@@ -1117,6 +1117,30 @@ namespace GIsiComm
                 cb( ErrorCode.OK );
             } );
         }
+
+        public void controlVoiceCall( uint8 callid, GIsiClient.Call.Operation operation, uint8 param, VoidResultFunc cb )
+        {
+            var req = new uchar[] {
+                GIsiClient.Call.MessageType.CONTROL_REQ,
+                callid,
+                1,      /* Sub-block count */
+                GIsiClient.Call.SubblockType.OPERATION,
+                4,      /* Sub-block length */
+                operation, param
+            };
+
+            ll.send( req, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error );
+                    return;
+                }
+
+                debug( "answer msg return code 0x%0X", msg.data[0] );
+
+                cb( ErrorCode.OK );
+            } );
+        }
     }
 
 } /* namespace GIsiComm */
