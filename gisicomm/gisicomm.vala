@@ -1077,6 +1077,29 @@ namespace GIsiComm
                 cb( ErrorCode.OK );
             } );
         }
+
+        public void releaseVoiceCall( uint8 callid, GIsiClient.Call.CauseType causeType, GIsiClient.Call.IsiCause causeValue, VoidResultFunc cb )
+        {
+
+            var req = new uchar[] {
+                GIsiClient.Call.MessageType.RELEASE_REQ,
+                callid,
+                1,      /* Sub-block count */
+                GIsiClient.Call.SubblockType.CAUSE,
+                4,      /* Sub-block length */
+                causeType,
+                causeValue
+            };
+
+            ll.send( req, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error );
+                    return;
+                }
+                cb( ErrorCode.OK );
+            } );
+        }
     }
 
 } /* namespace GIsiComm */
