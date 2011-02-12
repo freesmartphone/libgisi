@@ -1558,11 +1558,14 @@ namespace GIsiClient
         enum {
             CALL_GSM_OP_UUS_REQUIRED,
         }
-        enum {
-        CALL_DTMF_ENABLE_TONE_IND_SEND,
-        CALL_DTMF_DISABLE_TONE_IND_SEND,
-        }
         */
+
+        [CCode (cname = "guint8", cprefix = "CALL_DTMF_", has_type_id = false, cheader_filename = "call.h")]
+        public enum DTMFIndicationType
+        {
+            ENABLE_TONE_IND_SEND,
+            DISABLE_TONE_IND_SEND,
+        }
 
         [CCode (cname = "guint8", cprefix = "CALL_STATUS_MODE_", has_type_id = false, cheader_filename = "call.h")]
         public enum StatusMode
