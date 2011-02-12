@@ -554,6 +554,16 @@ namespace GIsiComm
 
         public signal void signalStrength( uint8 rssi );
         public signal void operatorName( string name );
+        public signal void timeInfo( GLib.Time time );
+
+        public struct ISI_Provider
+        {
+            GIsiClient.Network.OperatorStatus status;
+            string name;
+            string mcc;
+            string mnc;
+            int technology;
+        }
 
         public struct ISI_RegStatus
         {
@@ -570,13 +580,16 @@ namespace GIsiComm
             bool hsupa;
         }
 
-        public struct ISI_Provider
+        public struct ISI_Time
         {
-            GIsiClient.Network.OperatorStatus status;
-            string name;
-            string mcc;
-            string mnc;
-            int technology;
+            uint8 year;
+            uint8 mon;
+            uint8 mday;
+            uint8 hour;
+            uint8 min;
+            uint8 sec;
+            uint8 utc;
+            uint8 dst;
         }
 
         public Network( GIsi.Modem modem )
@@ -587,18 +600,12 @@ namespace GIsiComm
         protected override void onSubsystemIsReachable()
         {
             // FIXME: For Debugging only
-            return;
+            //return;
 
-            var ok = ll.ind_subscribe( GIsiClient.Network.MessageType.RSSI_IND, onSignalStrengthIndicationReceived );
-            if ( !ok )
-            {
-                warning( "Could not subscribe to NET RSSI indications" );
-            }
-            ok = ll.ind_subscribe( GIsiClient.Network.MessageType.REG_STATUS_IND, onRegistrationStatusIndicationReceived );
-            if ( !ok )
-            {
-                warning( "Could not subscribe to NET Status indications" );
-            }
+            ll.ind_subscribe( GIsiClient.Network.MessageType.RSSI_IND, onSignalStrengthIndicationReceived );
+            ll.ind_subscribe( GIsiClient.Network.MessageType.REG_STATUS_IND, onRegistrationStatusIndicationReceived );
+            ll.ind_subscribe( GIsiClient.Network.MessageType.RAT_IND, onRadioAccessTechnologyIndicationReceived );
+            ll.ind_subscribe( GIsiClient.Network.MessageType.TIME_IND, onTimeIndicationReceived );
         }
 
         private ISI_RegStatus parseRegistrationStatusMessage( GIsi.Message msg )
@@ -683,11 +690,66 @@ namespace GIsiComm
             return result;
         }
 
+        private void onRadioAccessTechnologyIndicationReceived( GIsi.Message msg )
+        {
+            message( @"NET RAT IND $msg received" );
+        }
+
+        private void onTimeIndicationReceived( GIsi.Message msg )
+        {
+            message( @"NET TIME IND $msg received, iterating through subblocks" );
+
+            for ( GIsi.SubBlockIter sbi = msg.subblock_iter_create( 2 ); sbi.is_valid(); sbi.next() )
+            {
+                message( @"Have subblock with ID $(sbi.id), length $(sbi.length)" );
+
+                switch ( sbi.id )
+                {
+                    case GIsiClient.Network.SubblockType.TIME_INFO:
+
+                        var isitime = ISI_Time();
+                        if ( !sbi.get_struct( &isitime, sizeof( ISI_Time ), 2 ) )
+                        {
+                            continue;
+                        }
+
+                        var t = GLib.Time();
+
+                        /* Value is years since last turn of century */
+                        t.year = isitime.year != GIsiClient.Network.INVALID_TIME ? isitime.year : -1;
+                        t.year += 2000;
+
+                        t.month = isitime.mon != GIsiClient.Network.INVALID_TIME ? isitime.mon : -1;
+                        t.day = isitime.mday != GIsiClient.Network.INVALID_TIME ? isitime.mday : -1;
+                        t.hour = isitime.hour != GIsiClient.Network.INVALID_TIME ? isitime.hour : -1;
+                        t.minute = isitime.min != GIsiClient.Network.INVALID_TIME ? isitime.min : -1;
+                        t.second = isitime.sec != GIsiClient.Network.INVALID_TIME ? isitime.sec : -1;
+                        t.isdst = isitime.dst != GIsiClient.Network.INVALID_TIME ? isitime.dst : -1;
+
+                        /* Most significant bit set indicates negative offset. The
+                         * second most significant bit is 'reserved'. The value is the
+                         * offset from UTC in a count of 15min intervals, possibly
+                         * including the current DST adjustment.
+                        t.utcoff = (time->utc & 0x3F) * 15 * 60;
+                        if (time->utc & 0x80)
+                                t.utcoff *= -1;
+                        */
+
+                        this.timeInfo( t );
+
+                        break;
+
+                    default:
+                        message( @"FIXME: handle unknown subblock with ID $(sbi.id)" );
+                        break;
+                }
+            }
+        }
+
         private void onRegistrationStatusIndicationReceived( GIsi.Message msg )
         {
-            message( "NET Status indication received, iterating through subblocks" );
+            message( @"NET Status IND $msg received, iterating through subblocks" );
             var status = parseRegistrationStatusMessage( msg );
-
         }
 
         private void onSignalStrengthIndicationReceived( GIsi.Message msg )
