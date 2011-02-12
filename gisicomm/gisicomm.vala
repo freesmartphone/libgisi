@@ -692,7 +692,24 @@ namespace GIsiComm
 
         private void onRadioAccessTechnologyIndicationReceived( GIsi.Message msg )
         {
-            message( @"NET RAT IND $msg received" );
+            message( @"NET RAT IND $msg received, iterating through subblocks" );
+
+            for ( GIsi.SubBlockIter sbi = msg.subblock_iter_create( 2 ); sbi.is_valid(); sbi.next() )
+            {
+                message( @"Have subblock with ID $(sbi.id), length $(sbi.length)" );
+
+                switch ( sbi.id )
+                {
+                    case GIsiClient.Network.SubblockType.RAT_INFO:
+                        message( @"FIXME: RAT 0x%0X detected", sbi.byte_at_position( 2 ) );
+                        break;
+
+                    default:
+                        message( @"FIXME: handle unknown subblock with ID $(sbi.id)" );
+                        break;
+
+                }
+            }
         }
 
         private void onTimeIndicationReceived( GIsi.Message msg )
