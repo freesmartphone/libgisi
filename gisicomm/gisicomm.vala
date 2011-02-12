@@ -1100,6 +1100,23 @@ namespace GIsiComm
                 cb( ErrorCode.OK );
             } );
         }
+
+        public void answerVoiceCall( uint8 callid, VoidResultFunc cb )
+        {
+            var req = new uchar[] { GIsiClient.Call.MessageType.ANSWER_REQ, callid, 0x0 };
+
+            ll.send( req, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error );
+                    return;
+                }
+
+                debug( "answer msg return code 0x%0X", msg.data[0] );
+
+                cb( ErrorCode.OK );
+            } );
+        }
     }
 
 } /* namespace GIsiComm */
