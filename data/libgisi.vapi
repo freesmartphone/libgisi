@@ -200,6 +200,11 @@ namespace GIsi
             return (GIsiClient.PhoneInfo) new GIsi.Client( this, GIsi.PhonetSubsystem.PHONE_INFO );
         }
 
+        public GIsiClient.MTC mtc_client_create()
+        {
+            return (GIsiClient.MTC) new GIsi.Client( this, GIsi.PhonetSubsystem.MTC );
+        }
+
         public GIsiClient.Network network_client_create()
         {
             return (GIsiClient.Network) new GIsi.Client( this, GIsi.PhonetSubsystem.NETWORK );
@@ -923,6 +928,88 @@ namespace GIsiClient
         public enum PPFeatureType
         {
             MAX_PDP_CONTEXTS,
+        }
+    }
+
+    /**
+     * @class MTC
+     *
+     * Modem Terminal Control
+     **/
+    [Compact]
+    [CCode (cname = "GIsiClient", cprefix = "MTC_", free_function = "g_isi_client_destroy", cheader_filename = "libgisi.h,mtc.h")]
+    public class MTC : GIsi.Client
+    {
+        private MTC();
+
+        public const uint TIMEOUT;
+        public const uint STATE_REQ_TIMEOUT;
+
+        [CCode (cname = "guint8", cprefix = "MTC_", has_type_id = false, cheader_filename = "mtc.h")]
+        public enum IsiCause
+        {
+            OK,
+            FAIL,
+            NOT_ALLOWED,
+            STATE_TRANSITION_GOING_ON,
+            ALREADY_ACTIVE,
+            SERVICE_DISABLED,
+            NOT_READY_YET,
+            NOT_SUPPORTED,
+            TRANSITION_ONGOING,
+            RESET_REQUIRED,
+        }
+
+        [CCode (cname = "guint8", cprefix = "MTC_", has_type_id = false, cheader_filename = "mtc.h")]
+        public enum IsiAction
+        {
+            START,
+            READY,
+            NOS_READY,
+            SOS_START,
+            SOS_READY,
+        }
+
+        [CCode (cname = "guint8", cprefix = "MTC_", has_type_id = false, cheader_filename = "mtc.h")]
+        public enum MessageType
+        {
+            STATE_REQ,
+            STATE_QUERY_REQ,
+            POWER_OFF_REQ,
+            POWER_ON_REQ,
+            STARTUP_SYNQ_REQ,
+            SHUTDOWN_SYNC_REQ,
+            STATE_RESP,
+            STATE_QUERY_RESP,
+            POWER_OFF_RESP,
+            POWER_ON_RESP,
+            STARTUP_SYNQ_RESP,
+            SHUTDOWN_SYNC_RESP,
+            STATE_INFO_IND,
+            COMMON_MESSAGE,
+        }
+
+        [CCode (cname = "guint8", cprefix = "MTC_", has_type_id = false, cheader_filename = "mtc.h")]
+        public enum ModemState
+        {
+            [CCode (cname = "MTC_STATE_NONE")]
+            NONE,
+            POWER_OFF,
+            NORMAL,
+            CHARGING,
+            ALARM,
+            TEST,
+            LOCAL,
+            WARRANTY,
+            RELIABILITY,
+            SELFTEST_FAIL,
+            SWDL,
+            RF_INACTIVE,
+            ID_WRITE,
+            DISCHARGING,
+            DISK_WIPE,
+            SW_RESET,
+            CMT_ONLY_MODE,
         }
     }
 
