@@ -132,8 +132,26 @@ namespace GIsiComm
 
         public async bool poweron()
         {
-            bool ok = false;
             mtc = new GIsiComm.MTC( m );
+
+            Idle.add( () => { poweron.callback(); return false; } );
+            yield;
+
+            bool ok = false;
+
+            mtc.setPower( true, ( error, cause ) => {
+                ok = ( error == ErrorCode.OK && cause == GIsiClient.MTC.IsiCause.OK );
+                poweron.callback();
+            } );
+
+            yield;
+
+            return ok;
+        }
+
+        public async bool rfon()
+        {
+            bool ok = false;
 
             GIsiClient.MTC.ModemState state = yield queryModemState();
 
@@ -260,6 +278,8 @@ namespace GIsiComm
     {
         protected GIsiClient.MTC ll;
 
+        public delegate void IsiCauseResultFunc( ErrorCode error, GIsiClient.MTC.IsiCause cause );
+
         public MTC( GIsi.Modem modem )
         {
             client = ll = modem.mtc_client_create();
@@ -321,6 +341,22 @@ namespace GIsiComm
                     return;
                 }
                 GIsiClient.MTC.IsiCause cause = (GIsiClient.MTC.IsiCause) msg.data[0];
+                cb( ErrorCode.OK, cause );
+            } );
+        }
+
+        public void setPower( bool on, IsiCauseResultFunc cb )
+        {
+            var req = new uchar[] { on ? GIsiClient.MTC.MessageType.POWER_ON_REQ : GIsiClient.MTC.MessageType.POWER_OFF_REQ, 0x00, 0x00 };
+
+            ll.send( req, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error, 0 );
+                    return;
+                }
+                GIsiClient.MTC.IsiCause cause = (GIsiClient.MTC.IsiCause) msg.data[0];
+                debug( @"set power answer $cause" );
                 cb( ErrorCode.OK, cause );
             } );
         }

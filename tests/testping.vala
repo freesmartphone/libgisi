@@ -117,6 +117,16 @@ void test_comm_mtc_query()
 
     mt.gcmtc = new GIsiComm.MTC( mt.modem );
 
+    mt.gcmtc.setPower( true, (error, cause) => {
+        assert( error == GIsiComm.ErrorCode.OK );
+        assert( cause == GIsiClient.MTC.IsiCause.OK );
+        debug( "power on OK" );
+        ok = true;
+    } );
+
+    while ( !ok ) MainContext.default().iteration( false );
+    ok = false;
+
     mt.gcmtc.readState( ( error, current, target ) => {
         assert( error == GIsiComm.ErrorCode.OK );
         debug( @"current state = $current, target state = $target" );
