@@ -29,6 +29,7 @@ namespace GIsiComm
     public delegate void IsiRegStatusResultFunc( ErrorCode error, Network.ISI_RegStatus? status );
     public delegate void IsiProviderArrayResultFunc( ErrorCode error, Network.ISI_Provider[] providers );
     public delegate void MtcStatesResultFunc( ErrorCode error, GIsiClient.MTC.ModemState current, GIsiClient.MTC.ModemState target );
+    public delegate void ByteArrayResultFunc( ErrorCode code, uint8[] array );
 
     public enum ErrorCode
     {
@@ -233,6 +234,21 @@ namespace GIsiComm
         }
 
         protected abstract void onSubsystemIsReachable();
+
+        //
+        // public API
+        //
+        public void sendGenericRequest( uint8[] req, ByteArrayResultFunc cb )
+        {
+            client.send( req, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error, null );
+                    return;
+                }
+                cb( ErrorCode.OK, msg.data );
+            } );
+        }
     }
 
     private void checked( bool predicate ) throws GLib.Error
