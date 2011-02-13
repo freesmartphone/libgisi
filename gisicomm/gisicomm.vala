@@ -28,6 +28,7 @@ namespace GIsiComm
     public delegate void IntResultFunc( ErrorCode error, int result );
     public delegate void IsiRegStatusResultFunc( ErrorCode error, Network.ISI_RegStatus? status );
     public delegate void IsiProviderArrayResultFunc( ErrorCode error, Network.ISI_Provider[] providers );
+    public delegate void MtcStateActionResultFunc( ErrorCode error, GIsiClient.MTC.ModemState state, GIsiClient.MTC.IsiAction action );
 
     public enum ErrorCode
     {
@@ -183,6 +184,58 @@ namespace GIsiComm
         catch ( Error e )
         {
             cb( ErrorCode.INVALID_FORMAT, null );
+        }
+    }
+
+    /**
+     * @class MTC
+     *
+     * Power and Functionality control
+     **/
+
+    public class MTC : AbstractBaseClient
+    {
+        protected GIsiClient.MTC ll;
+
+        public MTC( GIsi.Modem modem )
+        {
+            client = ll = modem.mtc_client_create();
+        }
+
+        protected override void onSubsystemIsReachable()
+        {
+            var ok = ll.ind_subscribe( GIsiClient.MTC.MessageType.STATE_INFO_IND, onStateInfoIndicationReceived );
+            if ( !ok )
+            {
+                warning( "Could not subscribe to MTC STATE_INFO_IND" );
+            }
+        }
+
+        private void onStateInfoIndicationReceived( GIsi.Message msg )
+        {
+            GIsiClient.MTC.ModemState state = (GIsiClient.MTC.ModemState) msg.data[0];
+            GIsiClient.MTC.IsiAction action = (GIsiClient.MTC.IsiAction) msg.data[1];
+            message( @"Received state info indication with message $msg, state = $state, action = $action" );
+        }
+
+        //
+        // public API
+        //
+
+        public void readState( MtcStateActionResultFunc cb )
+        {
+            var req = new uchar[] { GIsiClient.MTC.MessageType.STATE_QUERY_REQ, 0x0, 0x0 };
+
+            ll.send( req, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error, (GIsiClient.MTC.ModemState) 0xFF, (GIsiClient.MTC.IsiAction) 0xFF );
+                    return;
+                }
+                GIsiClient.MTC.ModemState state = (GIsiClient.MTC.ModemState) msg.data[0];
+                GIsiClient.MTC.IsiAction action = (GIsiClient.MTC.IsiAction) msg.data[1];
+                cb( ErrorCode.OK, state, action );
+            } );
         }
     }
 
