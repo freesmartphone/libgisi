@@ -117,9 +117,9 @@ void test_comm_mtc_query()
 
     mt.gcmtc = new GIsiComm.MTC( mt.modem );
 
-    mt.gcmtc.readState( ( error, state, action ) => {
+    mt.gcmtc.readState( ( error, current, target ) => {
         assert( error == GIsiComm.ErrorCode.OK );
-        debug( @"state = $state, action = $action" );
+        debug( @"current state = $current, target state = $target" );
         ok = true;
     } );
 

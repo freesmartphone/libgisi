@@ -28,7 +28,7 @@ namespace GIsiComm
     public delegate void IntResultFunc( ErrorCode error, int result );
     public delegate void IsiRegStatusResultFunc( ErrorCode error, Network.ISI_RegStatus? status );
     public delegate void IsiProviderArrayResultFunc( ErrorCode error, Network.ISI_Provider[] providers );
-    public delegate void MtcStateActionResultFunc( ErrorCode error, GIsiClient.MTC.ModemState state, GIsiClient.MTC.IsiAction action );
+    public delegate void MtcStatesResultFunc( ErrorCode error, GIsiClient.MTC.ModemState current, GIsiClient.MTC.ModemState target );
 
     public enum ErrorCode
     {
@@ -48,11 +48,46 @@ namespace GIsiComm
         protected bool online;
         protected unowned GIsi.PhonetNetlink netlink;
 
+        public GIsiComm.MTC mtc;
         public GIsiComm.PhoneInfo info;
         public GIsiComm.SIMAuth simauth;
         public GIsiComm.SIM sim;
         public GIsiComm.Network net;
         public GIsiComm.Call call;
+
+        private async GIsiClient.MTC.ModemState queryModemState()
+        {
+            bool ok = false;
+
+            GIsiClient.MTC.ModemState current = 0xE3;
+            GIsiClient.MTC.ModemState target = 0xE4;
+
+            do
+            {
+                Timeout.add_seconds( 1, () => { queryModemState.callback(); return false; } );
+                yield;
+
+                mtc.readState( (error, c, t) => {
+                    if ( error != ErrorCode.OK )
+                    {
+                        debug( "ERROR GETTING STATE" );
+                    }
+                    else
+                    {
+                        current = c;
+                        target = t;
+                        queryModemState.callback();
+                    }
+                } );
+
+                yield;
+
+                debug( @"MODEM STATE NOW $current, TARGET = $target" );
+
+            } while ( current != target );
+
+            return current;
+        }
 
         public ModemAccess( string iface )
         {
@@ -68,6 +103,7 @@ namespace GIsiComm
 
             netlink = m.netlink_start( ( modem, state, iface ) => {
                 online = ( state == GIsi.PhonetLinkState.UP );
+                debug( @"NETLINK STATE = $state" );
                 connect.callback();
             } );
 
@@ -94,6 +130,33 @@ namespace GIsiComm
             }
         }
 
+        public async bool poweron()
+        {
+            bool ok = false;
+            mtc = new GIsiComm.MTC( m );
+
+            GIsiClient.MTC.ModemState state = yield queryModemState();
+
+            if ( state != GIsiClient.MTC.ModemState.NORMAL )
+            {
+                debug( "setting state to -normal- (power on, rf on)" );
+
+                mtc.setState( true, true, (error, result) => {
+                    if ( error == ErrorCode.OK )
+                    {
+                        ok = ( result == GIsiClient.MTC.IsiCause.OK );
+                    }
+                    poweron.callback();
+                } );
+                yield;
+            }
+            else
+            {
+                ok = true;
+            }
+            return ok;
+        }
+
         public async bool launch()
         {
             info = new GIsiComm.PhoneInfo( m );
@@ -102,8 +165,8 @@ namespace GIsiComm
             net = new GIsiComm.Network( m );
             call = new GIsiComm.Call( m );
 
-            // give three seconds to settle things...
-            Timeout.add_seconds( 3, () => { launch.callback(); return false; } );
+            // give two more seconds to settle things...
+            Timeout.add_seconds( 2, () => { launch.callback(); return false; } );
             yield;
 
             return ( info.reachable && simauth.reachable && sim.reachable && net.reachable );
@@ -221,20 +284,44 @@ namespace GIsiComm
         //
         // public API
         //
-
-        public void readState( MtcStateActionResultFunc cb )
+        public void readState( MtcStatesResultFunc cb )
         {
-            var req = new uchar[] { GIsiClient.MTC.MessageType.STATE_QUERY_REQ, 0x0, 0x0 };
+            var req = new uchar[] { GIsiClient.MTC.MessageType.STATE_QUERY_REQ, 0x00, 0x00 };
 
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error, (GIsiClient.MTC.ModemState) 0xFF, (GIsiClient.MTC.IsiAction) 0xFF );
+                    cb( (ErrorCode) msg.error, (GIsiClient.MTC.ModemState) 0xE0, (GIsiClient.MTC.ModemState) 0xE1 );
                     return;
                 }
-                GIsiClient.MTC.ModemState state = (GIsiClient.MTC.ModemState) msg.data[0];
-                GIsiClient.MTC.IsiAction action = (GIsiClient.MTC.IsiAction) msg.data[1];
-                cb( ErrorCode.OK, state, action );
+                GIsiClient.MTC.ModemState current = (GIsiClient.MTC.ModemState) msg.data[0];
+                GIsiClient.MTC.ModemState target = (GIsiClient.MTC.ModemState) msg.data[1];
+                cb( ErrorCode.OK, current, target );
+            } );
+        }
+
+        public void setState( bool on, bool online, IntResultFunc cb )
+        {
+            GIsiClient.MTC.ModemState state = GIsiClient.MTC.ModemState.NORMAL;
+            if ( !on )
+            {
+                state = GIsiClient.MTC.ModemState.POWER_OFF;
+            }
+            if ( !online )
+            {
+                state = GIsiClient.MTC.ModemState.RF_INACTIVE;
+            }
+
+            var req = new uchar[] { GIsiClient.MTC.MessageType.STATE_REQ, state, 0x00 };
+
+            ll.send( req, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error, 0xFF );
+                    return;
+                }
+                GIsiClient.MTC.IsiCause cause = (GIsiClient.MTC.IsiCause) msg.data[0];
+                cb( ErrorCode.OK, cause );
             } );
         }
     }
