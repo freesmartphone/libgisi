@@ -41,6 +41,18 @@ $(testping_SOURCES): $(testping_VALASOURCES)
 testping_LDADD = $(progs_ldadd)
 EXTRA_DIST += $(testping_VALASOURCES)
 
+#
+# servers test
+#
+TEST_PROGS += testservers
+testservers_VALASOURCES = testservers.vala
+testservers_SOURCES = testservers.c
+$(testservers_SOURCES): $(testservers_VALASOURCES)
+	$(VALAC) $(VALAC_ARGS) $^
+	touch $@
+testservers_LDADD = $(progs_ldadd)
+EXTRA_DIST += $(testservers_VALASOURCES)
+
 CLEANFILES = \
     $(TEST_PROGS) \
     *.? \

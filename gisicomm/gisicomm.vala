@@ -434,7 +434,16 @@ namespace GIsiComm
 
             ll.send( req, ( msg ) => {
                 parseSimpleString( msg, cb );
+
+                for ( GIsi.SubBlockIter sbi = msg.subblock_iter_create( 2 ); sbi.is_valid(); sbi.next() )
+                {
+                    string sbtype = ( (GIsiClient.PhoneInfo.SubblockType) sbi.id).to_string() ?? "unknown";
+
+                    message( @"Got subblock $sbtype (0x%02X) w/ length $(sbi.length)", sbi.id );
+                }
             } );
+
+
 
             // FIXME: This has more subblocks which need to be deciphered
         }
