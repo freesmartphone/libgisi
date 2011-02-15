@@ -135,7 +135,8 @@ namespace GIsiComm
         {
             mtc = new GIsiComm.MTC( m );
 
-            Idle.add( () => { poweron.callback(); return false; } );
+            // give MTC a chance to come up
+            Timeout.add_seconds( 2, () => { poweron.callback(); return false; } );
             yield;
 
             bool ok = false;
