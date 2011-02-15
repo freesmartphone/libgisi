@@ -45,7 +45,7 @@ namespace GIsiComm
 
     public class ModemAccess
     {
-        protected GIsi.Modem m;
+        public GIsi.Modem m;
         protected bool online;
         protected unowned GIsi.PhonetNetlink netlink;
 

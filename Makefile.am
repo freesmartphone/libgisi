@@ -6,6 +6,7 @@ SUBDIRS = \
   gisicomm \
   data \
   tests \
+  tools \
   $(NULL)
 
 EXTRA_DIST = \

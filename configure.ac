@@ -45,6 +45,7 @@ AC_CONFIG_FILES([
                  data/libgisi.pc
                  data/gisicomm-0.0.pc
                  tests/Makefile
+                 tools/Makefile
                 ])
 
 AC_OUTPUT
