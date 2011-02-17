@@ -82,7 +82,7 @@ public string hexdump( uint8[] array, int linelength = 16, string prefix = "", u
 //===========================================================================
 public async void sendCommand( string[] args )
 {
-    debug( "yo" );
+    stdout.printf( "sendisi 1.0.0 (C) Michael 'Mickey' Lauer comes without any warranty. Don't blame me for frying your modem!\n" );
 
     var modem = new GIsiComm.ModemAccess( args[1] );
     if ( !yield modem.connect() )
