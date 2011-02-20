@@ -37,6 +37,13 @@ namespace GIsiComm
         INVALID_FORMAT = 0xE1,
     }
 
+    public enum OnlineStatus
+    {
+        UNKNOWN,
+        NO,
+        YES
+    }
+
     /**
      * @class ModemAccess
      *
@@ -46,7 +53,7 @@ namespace GIsiComm
     public class ModemAccess
     {
         public GIsi.Modem m;
-        protected bool online;
+        protected OnlineStatus online;
         protected unowned GIsi.PhonetNetlink netlink;
 
         public GIsiComm.MTC mtc;
@@ -90,6 +97,12 @@ namespace GIsiComm
             return current;
         }
 
+        private void onNetlinkStateChanged( GIsi.Modem modem, GIsi.PhonetLinkState state, string iface )
+        {
+            debug( @"NETLINK STATE = $state" );
+            online = ( state == GIsi.PhonetLinkState.UP ) ? OnlineStatus.YES : OnlineStatus.NO;
+        }
+
         public ModemAccess( string iface )
         {
             m = new GIsi.Modem( iface );
@@ -102,20 +115,29 @@ namespace GIsiComm
                 return false;
             }
 
+            netlink = m.netlink_start( onNetlinkStateChanged );
+
+            /*
             netlink = m.netlink_start( ( modem, state, iface ) => {
                 online = ( state == GIsi.PhonetLinkState.UP );
                 debug( @"NETLINK STATE = $state" );
                 connect.callback();
             } );
+            */
 
             if ( netlink == null )
             {
                 return false;
             }
 
-            yield;
+            while ( online == OnlineStatus.UNKNOWN )
+            {
+                Timeout.add( 500, () => { connect.callback(); return false; } );
+                debug( "waiting for netlink state to change..." );
+                yield;
+            }
 
-            return online;
+            return online == OnlineStatus.YES;
         }
 
         public async void disconnect()
