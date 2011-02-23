@@ -793,6 +793,7 @@ namespace GIsiComm
         {
             GIsiClient.Network.RegistrationStatus status;
             GIsiClient.Network.OperatorSelectMode mode;
+            string network;
             string name;
             string lac;
             string cid;
@@ -867,6 +868,14 @@ namespace GIsiComm
 
                         debug( @"regstatus = $(result.status)" );
                         debug( @"regmode = $(result.mode)" );
+
+                        uint8 nNames = sbi.byte_at_position( 4 );
+                        debug( @"# of alternative names: $nNames" );
+
+                        result.network = sbi.alpha_tag_at_position( sbi.byte_at_position( 7 ) * 2, 8 );
+
+                        debug( @"regname = $(result.network)" );
+
                         break;
 
                     case GIsiClient.Network.SubblockType.GSM_REG_INFO:
