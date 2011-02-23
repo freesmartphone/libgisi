@@ -177,7 +177,7 @@ namespace GIsi
         public unowned GIsi.PhonetNetlink netlink();
 
         [CCode (cname = "g_isi_pn_netlink_start", cheader_filename = "libgisi.h")]
-        public unowned GIsi.PhonetNetlink netlink_start( GIsi.PhonetNetlinkFunc cb );
+        public unowned GIsi.PhonetNetlink netlink_start( GIsi.PhonetNetlinkFunc cb ); /* Caution: unowned callback, don't use a closure! */
 
         [CCode (cname = "g_isi_pn_netlink_set_address", cheader_filename = "libgisi.h")]
         public int netlink_set_address( GIsi.PhonetDevice local );
@@ -357,7 +357,7 @@ namespace GIsi
     /**
      * @struct SubBlockIter
      *
-     * Iterator for sub blocks, which are the building blocks of ISI messages
+     * Iterator for sub blocks, which are the building blocks of (complex) ISI messages
      **/
     [CCode (cheader_filename = "libgisi.h")]
     public struct SubBlockIter
@@ -403,8 +403,13 @@ namespace GIsi
         {
             if ( !predicate )
             {
-                throw new GLib.IOError.INVALID_DATA( @"Invalid data in SubBlockIter" );
+                throw new GLib.IOError.INVALID_DATA( @"Invalid data in SubblockIter $this" );
             }
+        }
+
+        public string to_string()
+        {
+            return @"<SubblockIter @ %p: ID=%u, length=%u>".printf( &this, id, (uint)length );
         }
 
         public bool bool_at_position( uint pos ) throws GLib.Error
@@ -517,7 +522,7 @@ namespace GIsi
     [CCode (cheader_filename = "libgisi.h", has_target = false)]
     public delegate void PEPCallback (GIsi.PEP pep, void* opaque);
 
-    [CCode (cheader_filename = "libgisi.h")]
+    [CCode (cheader_filename = "libgisi.h", has_target = true)]
     public delegate void PhonetNetlinkFunc (GIsi.Modem modem, GIsi.PhonetLinkState st, string iface);
 
     [CCode (cheader_filename = "libgisi.h", has_target = false)]
@@ -567,31 +572,34 @@ namespace GIsi
     [CCode (cheader_filename = "libgisi.h")]
     public const int SOL_PNPIPE;
 
-#if 0
-    // ?
+    /**
+     * Assorted Static functions
+     **/
+    // register indication listener
     [CCode (cname = "g_isi_ind_subscribe", cheader_filename = "libgisi.h")]
-    public static unowned GIsi.Pending ind_subscribe (GIsi.Modem modem, uchar resource, uchar type, owned GIsi.NotifyFunc notify );
+    public static unowned GIsi.Pending ind_subscribe( GIsi.Modem modem, uchar resource, uchar type, owned GIsi.NotifyFunc notify );
 
-    // ?
+    // register notification listener
     [CCode (cname = "g_isi_ntf_subscribe", cheader_filename = "libgisi.h")]
-    public static unowned GIsi.Pending ntf_subscribe (GIsi.Modem modem, uchar resource, uchar type, owned GIsi.NotifyFunc notify );
+    public static unowned GIsi.Pending ntf_subscribe( GIsi.Modem modem, uchar resource, uchar type, owned GIsi.NotifyFunc notify );
 
-    // ?
+    // regster service listener
     [CCode (cname = "g_isi_service_bind", cheader_filename = "libgisi.h")]
-    public static unowned GIsi.Pending service_bind (GIsi.Modem modem, uchar resource, uchar type, owned GIsi.NotifyFunc notify );
-#endif
+    public static unowned GIsi.Pending service_bind( GIsi.Modem modem, uchar resource, uchar type, owned GIsi.NotifyFunc notify );
 
+    // Cancel a pending operation
+    [CCode (cname = "g_isi_remove_pending_by_owner", cheader_filename = "libgisi.h")]
+    public static void remove_pending_by_owner( GIsi.Modem modem, uchar resource, void* owner );
+
+#if 0
     //FIXME: Move all to PhonetDevice
     [CCode (cname = "g_isi_phonet_new", cheader_filename = "libgisi.h")]
-    public static unowned GLib.IOChannel phonet_new (uint ifindex);
+    public static unowned GLib.IOChannel phonet_new( uint ifindex );
     [CCode (cname = "g_isi_phonet_peek_length", cheader_filename = "libgisi.h")]
-    public static size_t phonet_peek_length (GLib.IOChannel io);
+    public static size_t phonet_peek_length( GLib.IOChannel io );
     [CCode (cname = "g_isi_phonet_read", cheader_filename = "libgisi.h")]
-    public static ssize_t phonet_read (GLib.IOChannel io, void* buf, size_t len, void* addr);
-
-    // ?
-    [CCode (cname = "g_isi_remove_pending_by_owner", cheader_filename = "libgisi.h")]
-    public static void remove_pending_by_owner (GIsi.Modem modem, uchar resource, void* owner);
+    public static ssize_t phonet_read( GLib.IOChannel io, void* buf, size_t len, void* addr );
+#endif
 }
 
 /**
