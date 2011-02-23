@@ -63,6 +63,7 @@ enum net_subblock {
 	NET_GSM_BAND_INFO =				0x11,
 	NET_RAT_INFO =					0x2C,
 	NET_AVAIL_NETWORK_INFO_COMMON =			0xE1,
+    NET_GSM_REG_NETWORK_INFO = 0xE3,
 	NET_OPER_NAME_INFO =				0xE7,
 };
 

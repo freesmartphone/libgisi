@@ -1096,6 +1096,7 @@ namespace GIsiClient
             GSM_BAND_INFO,
             RAT_INFO,
             AVAIL_NETWORK_INFO_COMMON,
+            GSM_REG_NETWORK_INFO,
             OPER_NAME_INFO,
         }
 

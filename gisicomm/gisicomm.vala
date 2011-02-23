@@ -842,7 +842,7 @@ namespace GIsiComm
 
                 switch ( sbi.id )
                 {
-                    case 0xE3: /* operator display name */
+                    case GIsiClient.Network.SubblockType.GSM_REG_NETWORK_INFO:
 
                         uint8 length;
                         if ( !sbi.get_byte( out length, 5 ) )
