@@ -7,6 +7,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/gisi \
 	-I$(top_srcdir)/clients \
 	$(GLIB_CFLAGS) \
+	$(GLIB_EXTRA_CFLAGS) \
 	-DG_LOG_DOMAIN=\"gisicomm\" \
 	$(NULL)
 
@@ -49,6 +50,7 @@ gisicomm-0.0.vapi .vala.stamp: $(libgisicomm_la_VALASOURCES)
 
 libgisicomm_la_LIBADD = \
 	$(GLIB_LIBS) \
+	$(GLIB_EXTRA_LIBS) \
 	$(NULL)
 
 vapidir = $(datadir)/vala/vapi
