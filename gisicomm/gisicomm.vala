@@ -872,9 +872,17 @@ namespace GIsiComm
                         uint8 nNames = sbi.byte_at_position( 4 );
                         debug( @"# of alternative names: $nNames" );
 
-                        result.network = sbi.alpha_tag_at_position( sbi.byte_at_position( 7 ) * 2, 8 );
-
-                        debug( @"regname = $(result.network)" );
+                        if ( result.status == GIsiClient.Network.RegistrationStatus.HOME ||
+                             result.status == GIsiClient.Network.RegistrationStatus.ROAM ||
+                             result.status == GIsiClient.Network.RegistrationStatus.ROAM_BLINK )
+                        {
+                            result.network = sbi.alpha_tag_at_position( sbi.byte_at_position( 7 ) * 2, 8 );
+                            debug( @"regname = $(result.network)" );
+                        }
+                        else
+                        {
+                            debug( "not looking for regname, since we're not camped" );
+                        }
 
                         break;
 
