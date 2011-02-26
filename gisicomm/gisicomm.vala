@@ -777,7 +777,7 @@ namespace GIsiComm
         private GIsiClient.Network ll;
 
         public signal void signalStrength( uint8 rssi );
-        public signal void operatorName( string name );
+        public signal void registrationStatus( ISI_RegStatus status );
         public signal void timeInfo( GLib.Time time );
 
         public struct ISI_Provider
@@ -1008,6 +1008,7 @@ namespace GIsiComm
         {
             message( @"NET Status IND $msg received, iterating through subblocks" );
             var status = parseRegistrationStatusMessage( msg );
+            this.registrationStatus( status );
         }
 
         private void onSignalStrengthIndicationReceived( GIsi.Message msg )
