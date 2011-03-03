@@ -117,14 +117,6 @@ namespace GIsiComm
 
             netlink = m.netlink_start( onNetlinkStateChanged );
 
-            /*
-            netlink = m.netlink_start( ( modem, state, iface ) => {
-                online = ( state == GIsi.PhonetLinkState.UP );
-                debug( @"NETLINK STATE = $state" );
-                connect.callback();
-            } );
-            */
-
             if ( netlink == null )
             {
                 return false;
@@ -153,12 +145,26 @@ namespace GIsiComm
             }
         }
 
+        public async bool launch()
+        {
+            info = new GIsiComm.PhoneInfo( m );
+            simauth = new GIsiComm.SIMAuth( m );
+            sim = new GIsiComm.SIM( m );
+            net = new GIsiComm.Network( m );
+            call = new GIsiComm.Call( m );
+
+            Timeout.add_seconds( 1, () => { launch.callback(); return false; } );
+            yield;
+
+            return ( info.reachable && simauth.reachable && sim.reachable && net.reachable );
+        }
+
         public async bool poweron()
         {
             mtc = new GIsiComm.MTC( m );
 
             // give MTC a chance to come up
-            Timeout.add_seconds( 2, () => { poweron.callback(); return false; } );
+            Timeout.add_seconds( 1, () => { poweron.callback(); return false; } );
             yield;
 
             bool ok = false;
@@ -170,12 +176,10 @@ namespace GIsiComm
 
             yield;
 
-            return ok;
-        }
-
-        public async bool rfon()
-        {
-            bool ok = false;
+            if ( !ok )
+            {
+                return false;
+            }
 
             GIsiClient.MTC.ModemState state = yield queryModemState();
 
@@ -197,22 +201,6 @@ namespace GIsiComm
                 ok = true;
             }
             return ok;
-        }
-
-        public async bool launch()
-        {
-            info = new GIsiComm.PhoneInfo( m );
-            simauth = new GIsiComm.SIMAuth( m );
-            sim = new GIsiComm.SIM( m );
-            net = new GIsiComm.Network( m );
-            call = new GIsiComm.Call( m );
-
-            // give two more seconds to settle things...
-            Timeout.add_seconds( 2, () => { launch.callback(); return false; } );
-            yield;
-
-            return ( info.reachable && simauth.reachable && sim.reachable && net.reachable );
-
         }
 
     }
@@ -350,9 +338,11 @@ namespace GIsiComm
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
                 {
+                    debug( "error reading state" );
                     cb( (ErrorCode) msg.error, (GIsiClient.MTC.ModemState) 0xE0, (GIsiClient.MTC.ModemState) 0xE1 );
                     return;
                 }
+                debug( "reading state ok" );
                 GIsiClient.MTC.ModemState current = (GIsiClient.MTC.ModemState) msg.data[0];
                 GIsiClient.MTC.ModemState target = (GIsiClient.MTC.ModemState) msg.data[1];
                 cb( ErrorCode.OK, current, target );

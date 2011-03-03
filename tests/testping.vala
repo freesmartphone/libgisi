@@ -311,7 +311,7 @@ void test_comm_network_query()
     while ( !ok ) MainContext.default().iteration( false );
     ok = false;
 
-#if 0
+//#if 0
     mt.gcnetwork.listProviders( ( error, result ) => {
         assert( error == GIsiComm.ErrorCode.OK );
         //debug( "RSSI = %d", result );
@@ -319,7 +319,21 @@ void test_comm_network_query()
     } );
 
     while ( !ok ) MainContext.default().iteration( false );
-#endif
+//#endif
+}
+
+//===========================================================================
+void test_comm_network_register()
+//===========================================================================
+{
+    var ok = false;
+
+    mt.gcnetwork.registerAutomatic( false, ( error ) => {
+        assert( error == GIsiComm.ErrorCode.OK );
+        ok = true;
+    } );
+
+    while ( !ok ) MainContext.default().iteration( false );
 }
 
 //===========================================================================
@@ -372,8 +386,9 @@ void main( string[] args )
 //    Test.add_func( "/GISI/Client/SIM/Bringup", test_client_sim_bringup );
 //    Test.add_func( "/GISI/COMM/SIM/Query", test_comm_sim_query );
 
-//    Test.add_func( "/GISI/Client/Network/Bringup", test_client_network_bringup );
-//    Test.add_func( "/GISI/COMM/Network/Query", test_comm_network_query );
+    Test.add_func( "/GISI/Client/Network/Bringup", test_client_network_bringup );
+    Test.add_func( "/GISI/COMM/Network/Query", test_comm_network_query );
+    Test.add_func( "/GISI/COMM/Network/Register", test_comm_network_register );
 
 //    Test.add_func( "/GISI/Client/Call/Bringup", test_client_call_bringup );
 //    Test.add_func( "/GISI/COMM/Call/Query", test_comm_call_query );
