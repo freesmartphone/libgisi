@@ -188,6 +188,7 @@ namespace GIsiComm
                 debug( "setting state to -normal- (power on, rf on)" );
 
                 mtc.setState( true, true, (error, result) => {
+                    debug( "settting state error %d", error );
                     if ( error == ErrorCode.OK )
                     {
                         ok = ( result == GIsiClient.MTC.IsiCause.OK );
@@ -1120,6 +1121,41 @@ namespace GIsiComm
                 0x04,  /* Sub-block length */
                 force ? GIsiClient.Network.OperatorSelectMode.USER_RESELECTION : GIsiClient.Network.OperatorSelectMode.AUTOMATIC,
                 0x00  /* Index not used */
+            };
+
+            ll.send_with_timeout( req, GIsiClient.Network.SET_TIMEOUT, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error );
+                    return;
+                }
+                cb( ErrorCode.OK );
+            } );
+        }
+
+        public void registerManual( string mcc, string mnc, owned VoidResultFunc cb )
+        {
+            debug( @"mcc = $mcc, mnc = $mnc" );
+
+            uint8 bcd[3] = { 0, 0, 0 };
+            bcd[0] = (mcc[0] - '0') | (mcc[1] - '0') << 4;
+            bcd[1] = (mcc[2] - '0');
+            bcd[1] |= (mnc[2] == '\0' ? 0x0f : (mnc[2] - '0')) << 4;
+            bcd[2] = (mnc[0] - '0') | (mnc[1] - '0') << 4;
+
+            var req = new uchar[] {
+                GIsiClient.Network.MessageType.SET_REQ,
+                0x00,  /* Registered in another protocol? */
+                0x02,  /* Sub-block count */
+                GIsiClient.Network.SubblockType.OPERATOR_INFO_COMMON,
+                0x04,  /* Sub-block length */
+                GIsiClient.Network.OperatorSelectMode.MANUAL,
+                0x00,  /* Index not used */
+                GIsiClient.Network.SubblockType.GSM_OPERATOR_INFO,
+                0x08,  /* Sub-block length */
+                bcd[0], bcd[1], bcd[2],
+                GIsiClient.Network.GsmBandInfo.INFO_NOT_AVAIL,  /* Pick any supported band */
+                0x00, 0x00  /* Filler */
             };
 
             ll.send_with_timeout( req, GIsiClient.Network.SET_TIMEOUT, ( msg ) => {
