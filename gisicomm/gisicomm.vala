@@ -1564,5 +1564,57 @@ namespace GIsiComm
         }
     }
 
+    /**
+     * @class GSS
+     *
+     * General Stack Server
+     **/
+
+    public class GSS : AbstractBaseClient
+    {
+        private GIsiClient.GSS ll;
+
+        public GSS( GIsi.Modem modem )
+        {
+            client = ll = modem.gss_client_create();
+        }
+
+        protected override void onSubsystemIsReachable()
+        {
+        }
+    }
+
+    /**
+     * @class SS
+     *
+     * General Stack Server
+     **/
+
+    public class SS : AbstractBaseClient
+    {
+        private GIsiClient.SS ll;
+
+        public SS( GIsi.Modem modem )
+        {
+            client = ll = modem.ss_client_create();
+        }
+
+        protected override void onSubsystemIsReachable()
+        {
+            ll.ind_subscribe( GIsiClient.SS.MessageType.STATUS_IND, onStatusIndicationReceived );
+            ll.ind_subscribe( GIsiClient.SS.MessageType.GSM_USSD_RECEIVE_IND, onUssdReceiveIndicationReceived );
+        }
+
+        private void onStatusIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onUssdReceiveIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+    }
+
 } /* namespace GIsiComm */
 
