@@ -149,20 +149,24 @@ namespace GIsiComm
 
         public async bool launch()
         {
+            mtc = new GIsiComm.MTC( m );
+            Timeout.add( 500, launch.callback ); yield;
             info = new GIsiComm.PhoneInfo( m );
-            simauth = new GIsiComm.SIMAuth( m );
+            Timeout.add( 500, launch.callback ); yield;
             sim = new GIsiComm.SIM( m );
+            Timeout.add( 500, launch.callback ); yield;
+            simauth = new GIsiComm.SIMAuth( m );
+            Timeout.add( 500, launch.callback ); yield;
+            call = new GIsiComm.Call( m );
 
             Timeout.add_seconds( 1, () => { launch.callback(); return false; } );
             yield;
 
-            return ( info.reachable && simauth.reachable && sim.reachable );
+            return ( mtc.reachable && info.reachable && sim.reachable && simauth.reachable && call.reachable );
         }
 
         public async bool poweron()
         {
-            mtc = new GIsiComm.MTC( m );
-
             // give MTC a chance to come up
             Timeout.add_seconds( 1, () => { poweron.callback(); return false; } );
             yield;
@@ -230,7 +234,6 @@ namespace GIsiComm
             }
 
             net = new GIsiComm.Network( m );
-            call = new GIsiComm.Call( m );
 
             return true;
         }

@@ -215,6 +215,11 @@ namespace GIsi
             return (GIsiClient.Call) new GIsi.Client( this, GIsi.PhonetSubsystem.CALL );
         }
 
+        public GIsiClient.GSS gss_client_create()
+        {
+            return (GIsiClient.GSS) new GIsi.Client( this, GIsi.PhonetSubsystem.GSS );
+        }
+
         //
         // assorted modem functions
         //
@@ -1673,4 +1678,47 @@ namespace GIsiClient
             VOIP_ADDR,
         }
     }
-}
+
+    /**
+     * @class GSS
+     *
+     * General Stack Server
+     **/
+    [Compact]
+    [CCode (cname = "GIsiClient", cprefix = "GSS_", free_function = "g_isi_client_destroy", cheader_filename = "libgisi.h,gss.h")]
+    public class GSS : GIsi.Client
+    {
+        private GSS();
+        public const uint TIMEOUT;
+
+        [CCode (cname = "guint8", cprefix = "GSS_CSS_", has_type_id = false, cheader_filename = "gss.h")]
+        public enum MessageType
+        {
+            SERVICE_REQ,
+            SERVICE_RESP,
+            SERVICE_FAIL_RESP,
+        }
+
+        [CCode (cname = "guint8", cprefix = "GSS_", has_type_id = false, cheader_filename = "gss.h")]
+        public enum SubblockType
+        {
+            RAT_INFO,
+        }
+
+        [CCode (cname = "guint8", cprefix = "GSS_", has_type_id = false, cheader_filename = "gss.h")]
+        public enum SelectionMode
+        {
+            DUAL_RAT,
+            GSM_RAT,
+            UMTS_RAT,
+        }
+
+        [CCode (cname = "guint8", cprefix = "GSS_", has_type_id = false, cheader_filename = "gss.h")]
+        public enum Operation
+        {
+            SELECTED_RAT_WRITE,
+            SELECTED_RAT_READ,
+        }
+    }
+
+} /* namespace GIsi */
