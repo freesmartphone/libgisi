@@ -220,6 +220,11 @@ namespace GIsi
             return (GIsiClient.GSS) new GIsi.Client( this, GIsi.PhonetSubsystem.GSS );
         }
 
+        public GIsiClient.SS ss_client_create()
+        {
+            return (GIsiClient.SS) new GIsi.Client( this, GIsi.PhonetSubsystem.SS );
+        }
+
         //
         // assorted modem functions
         //
@@ -1718,6 +1723,134 @@ namespace GIsiClient
         {
             SELECTED_RAT_WRITE,
             SELECTED_RAT_READ,
+        }
+    }
+
+    /**
+     * @class SS
+     *
+     * Subscriber Services
+     **/
+    [Compact]
+    [CCode (cname = "GIsiClient", cprefix = "SS_", free_function = "g_isi_client_destroy", cheader_filename = "libgisi.h,ss.h")]
+    public class SS : GIsi.Client
+    {
+        private SS();
+        public const uint TIMEOUT;
+        public const uint MAX_USSD_LENGTH;
+
+        [CCode (cname = "guint8", cprefix = "SS_", has_type_id = false, cheader_filename = "ss.h")]
+        public enum MessageType
+        {
+            SERVICE_REQ,
+            SERVICE_COMPLETED_RESP,
+            SERVICE_FAILED_RESP,
+            GSM_USSD_SEND_REQ,
+            GSM_USSD_SEND_RESP,
+            GSM_USSD_RECEIVE_IND,
+            STATUS_IND,
+            COMMON_MESSAGE,
+        }
+
+        [CCode (cname = "guint8", cprefix = "SS_", has_type_id = false, cheader_filename = "ss.h")]
+        public enum SubblockType
+        {
+            FORWARDING,
+            STATUS_RESULT,
+            GSM_PASSWORD,
+            GSM_FORWARDING_INFO,
+            GSM_FORWARDING_FEATURE,
+            GSM_DATA,
+            GSM_BSC_INFO,
+            GSM_PASSWORD_INFO,
+            GSM_INDICATE_PASSWORD_ERROR,
+            GSM_INDICATE_ERROR,
+            GSM_ADDITIONAL_INFO,
+            GSM_USSD_STRING,
+        }
+
+        [CCode (cname = "guint8", cprefix = "SS_", has_type_id = false, cheader_filename = "ss.h")]
+        public enum IsiCause
+        {
+            GSM_ACTIVE,
+            GSM_REGISTERED,
+            GSM_PROVISIONED,
+            GSM_QUIESCENT,
+        }
+
+        [CCode (cname = "guint8", cprefix = "", has_type_id = false, cheader_filename = "ss.h")]
+        public enum UssdType
+        {
+            GSM_USSD_MT_REPLY,
+            GSM_USSD_COMMAND,
+            GSM_USSD_REQUEST,
+            GSM_USSD_NOTIFY,
+            GSM_USSD_END =			0x05
+        }
+
+        [CCode (cname = "guint8", cprefix = "", has_type_id = false, cheader_filename = "ss.h")]
+        public enum UssdStatus
+        {
+            GSM_STATUS_REQUEST_USSD_START,
+            GSM_STATUS_REQUEST_USSD_STOP,
+            GSM_STATUS_REQUEST_USSD_FAILED,
+        }
+
+        [CCode (cname = "guint8", cprefix = "", has_type_id = false, cheader_filename = "ss.h")]
+        public enum Operation
+        {
+            ACTIVATION,
+            DEACTIVATION,
+            REGISTRATION,
+            ERASURE,
+            INTERROGATION,
+            GSM_PASSWORD_REGISTRATION,
+        }
+
+        [CCode (cname = "guint8", cprefix = "", has_type_id = false, cheader_filename = "ss.h")]
+        public enum BasicServiceCode
+        {
+            ALL_TELE_AND_BEARER,
+            GSM_ALL_TELE,
+            GSM_TELEPHONY,
+            GSM_ALL_DATA_TELE,
+            GSM_FACSIMILE,
+            GSM_SMS,
+            GSM_VOICE_GROUP,
+            GSM_ALL_TELE_EXC_SMS,
+            GSM_ALL_BEARER,
+            GSM_ALL_ASYNC,
+            GSM_ALL_SYNC,
+            GSM_ALL_DATA_CIRCUIT_SYNC,
+            GSM_ALL_DATA_CIRCUIT_ASYNC,
+            GSM_ALL_DATA_PACKET_SYNC,
+            GSM_ALL_PAD_ACCESS,
+        }
+
+        [CCode (cname = "guint8", cprefix = "", has_type_id = false, cheader_filename = "ss.h")]
+        public enum Code
+        {
+            GSM_ALL_FORWARDINGS,
+            GSM_ALL_COND_FORWARDINGS,
+            GSM_FORW_UNCONDITIONAL,
+            GSM_BARR_ALL_OUT,
+            GSM_OUTGOING_BARR_SERV,
+            GSM_INCOMING_BARR_SERV,
+            GSM_BARR_ALL_IN,
+            GSM_CALL_WAITING,
+            GSM_FORW_NO_REPLY,
+            GSM_FORW_NO_REACH,
+            GSM_FORW_BUSY,
+            GSM_ALL_BARRINGS,
+            GSM_BARR_OUT_INTER,
+            GSM_BARR_OUT_INTER_EXC_HOME,
+            GSM_BARR_ALL_IN_ROAM,
+        }
+
+        [CCode (cname = "guint8", cprefix = "", has_type_id = false, cheader_filename = "ss.h")]
+        public enum ResponseData
+        {
+            SEND_ADDITIONAL_INFO,
         }
     }
 
