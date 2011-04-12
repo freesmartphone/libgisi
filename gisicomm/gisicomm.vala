@@ -106,7 +106,7 @@ namespace GIsiComm
             if ( state == GIsi.PhonetLinkState.UP )
             {
                 var fd = Posix.open( "/dev/cmt/cmt_rst_rq", Posix.O_WRONLY, 0 );
-                Posix.write( fd, "1", 1 );
+                Posix.write( fd, "0", 1 );
             }
         }
 
