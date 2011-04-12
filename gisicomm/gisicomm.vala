@@ -103,6 +103,11 @@ namespace GIsiComm
         {
             debug( @"NETLINK STATE = $state" );
             online = ( state == GIsi.PhonetLinkState.UP ) ? OnlineStatus.YES : OnlineStatus.NO;
+            if ( state == GIsi.PhonetLinkState.UP )
+            {
+                var fd = Posix.open( "/dev/cmt/cmt_rst_rq", Posix.O_WRONLY, 0 );
+                Posix.write( fd, "1", 1 );
+            }
         }
 
         public ModemAccess( string iface )
