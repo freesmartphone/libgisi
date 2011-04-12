@@ -375,10 +375,10 @@ void main( string[] args )
     Test.add_func( "/GISI/Modem/Create", test_modem_create );
     Test.add_func( "/GISI/Netlink/Bringup", test_netlink_bringup );
 
-    Test.add_func( "/GISI/COMM/MTC/Query", test_comm_mtc_query );
+//    Test.add_func( "/GISI/COMM/MTC/Query", test_comm_mtc_query );
 
-//    Test.add_func( "/GISI/Client/PhoneInfo/Bringup", test_client_phoneinfo_bringup );
-//    Test.add_func( "/GISI/COMM/PhoneInfo/Query", test_comm_phoneinfo_query );
+    Test.add_func( "/GISI/Client/PhoneInfo/Bringup", test_client_phoneinfo_bringup );
+    Test.add_func( "/GISI/COMM/PhoneInfo/Query", test_comm_phoneinfo_query );
 
 //    Test.add_func( "/GISI/Client/SIMAuth/Bringup", test_client_simauth_bringup );
 //    Test.add_func( "/GISI/COMM/SIMAuth/Query", test_comm_simauth_query);

@@ -63,6 +63,8 @@ namespace GIsiComm
         public GIsiComm.Network net;
         public GIsiComm.Call call;
 
+        public GIsiClient.MTC.ModemState state;
+
         private async GIsiClient.MTC.ModemState queryModemState()
         {
             bool ok = false;
@@ -150,13 +152,11 @@ namespace GIsiComm
             info = new GIsiComm.PhoneInfo( m );
             simauth = new GIsiComm.SIMAuth( m );
             sim = new GIsiComm.SIM( m );
-            net = new GIsiComm.Network( m );
-            call = new GIsiComm.Call( m );
 
             Timeout.add_seconds( 1, () => { launch.callback(); return false; } );
             yield;
 
-            return ( info.reachable && simauth.reachable && sim.reachable && net.reachable );
+            return ( info.reachable && simauth.reachable && sim.reachable );
         }
 
         public async bool poweron()
@@ -167,28 +167,43 @@ namespace GIsiComm
             Timeout.add_seconds( 1, () => { poweron.callback(); return false; } );
             yield;
 
-            bool ok = false;
+            if ( !mtc.reachable )
+            {
+                debug( "ERROR: MTC unreachable" );
+                return false;
+            }
 
-            mtc.setPower( true, ( error, cause ) => {
-                ok = ( error == ErrorCode.OK && cause == GIsiClient.MTC.IsiCause.OK );
+            var ok = false;
+            mtc.startupSynq( ( error ) => {
+                ok = ( error == ErrorCode.OK );
                 poweron.callback();
             } );
-
             yield;
 
             if ( !ok )
             {
                 return false;
             }
+            ok = true;
 
-            GIsiClient.MTC.ModemState state = yield queryModemState();
+            var wait = 5;
+            while ( wait-- > 0 && state == 0xE0 )
+            {
+                Timeout.add_seconds( 1, poweron.callback );
+                yield;
+            }
+            if ( wait == 0 && state == 0xE0 )
+            {
+                debug( "no state change within 5 seconds" );
+                return false;
+            }
 
             if ( state != GIsiClient.MTC.ModemState.NORMAL )
             {
                 debug( "setting state to -normal- (power on, rf on)" );
 
                 mtc.setState( true, true, (error, result) => {
-                    debug( "settting state error %d", error );
+                    debug( "setting state error %d", error );
                     if ( error == ErrorCode.OK )
                     {
                         ok = ( result == GIsiClient.MTC.IsiCause.OK );
@@ -199,9 +214,25 @@ namespace GIsiComm
             }
             else
             {
-                ok = true;
+                return true;
             }
-            return ok;
+
+            wait = 5;
+            while ( wait-- > 0 && state != GIsiClient.MTC.ModemState.NORMAL )
+            {
+                Timeout.add_seconds( 1, poweron.callback );
+                yield;
+            }
+            if ( wait == 0 && state != GIsiClient.MTC.ModemState.NORMAL )
+            {
+                debug( "no state change within 5 seconds" );
+                return false;
+            }
+
+            net = new GIsiComm.Network( m );
+            call = new GIsiComm.Call( m );
+
+            return true;
         }
 
     }
@@ -305,12 +336,14 @@ namespace GIsiComm
     public class MTC : AbstractBaseClient
     {
         protected GIsiClient.MTC ll;
+        public GIsiClient.MTC.ModemState state;
 
         public delegate void IsiCauseResultFunc( ErrorCode error, GIsiClient.MTC.IsiCause cause );
 
         public MTC( GIsi.Modem modem )
         {
             client = ll = modem.mtc_client_create();
+            state = 0xE0;
         }
 
         protected override void onSubsystemIsReachable()
@@ -320,6 +353,20 @@ namespace GIsiComm
             {
                 warning( "Could not subscribe to MTC STATE_INFO_IND" );
             }
+            else
+            {
+                readState( ( error, current, target ) => {
+                    if ( error == ErrorCode.OK )
+                    {
+                        this.state = current;
+                        debug( @"initial state = $state" );
+                    }
+                    else
+                    {
+                        debug( "can't query initial state: error = %d", error );
+                    }
+                } );
+            }
         }
 
         private void onStateInfoIndicationReceived( GIsi.Message msg )
@@ -327,6 +374,10 @@ namespace GIsiComm
             GIsiClient.MTC.ModemState state = (GIsiClient.MTC.ModemState) msg.data[0];
             GIsiClient.MTC.IsiAction action = (GIsiClient.MTC.IsiAction) msg.data[1];
             message( @"Received state info indication with message $msg, state = $state, action = $action" );
+            if ( action == GIsiClient.MTC.IsiAction.READY )
+            {
+                this.state = state;
+            }
         }
 
         //
@@ -343,9 +394,9 @@ namespace GIsiComm
                     cb( (ErrorCode) msg.error, (GIsiClient.MTC.ModemState) 0xE0, (GIsiClient.MTC.ModemState) 0xE1 );
                     return;
                 }
-                debug( "reading state ok" );
                 GIsiClient.MTC.ModemState current = (GIsiClient.MTC.ModemState) msg.data[0];
                 GIsiClient.MTC.ModemState target = (GIsiClient.MTC.ModemState) msg.data[1];
+                debug( @"reading state ok: current = $current, target = $target" );
                 cb( ErrorCode.OK, current, target );
             } );
         }
@@ -364,7 +415,7 @@ namespace GIsiComm
 
             var req = new uchar[] { GIsiClient.MTC.MessageType.STATE_REQ, state, 0x00 };
 
-            ll.send( req, ( msg ) => {
+            ll.send_with_timeout( req, GIsiClient.MTC.STATE_REQ_TIMEOUT, ( msg ) => {
                 if ( !msg.ok() )
                 {
                     cb( (ErrorCode) msg.error, 0xFF );
@@ -372,6 +423,19 @@ namespace GIsiComm
                 }
                 GIsiClient.MTC.IsiCause cause = (GIsiClient.MTC.IsiCause) msg.data[0];
                 cb( ErrorCode.OK, cause );
+            } );
+        }
+
+        public void startupSynq( VoidResultFunc cb )
+        {
+            var req = new uchar[] { GIsiClient.MTC.MessageType.STARTUP_SYNQ_REQ, 0, 0 };
+            ll.send( req, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error );
+                    return;
+                }
+                cb( ErrorCode.OK );
             } );
         }
 
@@ -822,6 +886,13 @@ namespace GIsiComm
             ll.ind_subscribe( GIsiClient.Network.MessageType.REG_STATUS_IND, onRegistrationStatusIndicationReceived );
             ll.ind_subscribe( GIsiClient.Network.MessageType.RAT_IND, onRadioAccessTechnologyIndicationReceived );
             ll.ind_subscribe( GIsiClient.Network.MessageType.TIME_IND, onTimeIndicationReceived );
+
+            queryRat( ( error, result ) => {
+                debug( "query rat done, error = %d", error );
+                queryStatus( ( error, result ) => {
+                    debug( "query status done, error = %d", error );
+                } );
+            } );
         }
 
         private ISI_RegStatus parseRegistrationStatusMessage( GIsi.Message msg )
@@ -1030,6 +1101,7 @@ namespace GIsiComm
         public void queryStrength( owned IntResultFunc cb )
         {
             var req = new uchar[] { GIsiClient.Network.MessageType.RSSI_GET_REQ, GIsiClient.Network.CsType.GSM, GIsiClient.Network.MeasurementType.CURRENT_CELL_RSSI };
+            // FIXME: PN_MODEM_NETWORK would need four additional filler bytes
 
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
@@ -1165,6 +1237,33 @@ namespace GIsiComm
                     return;
                 }
                 cb( ErrorCode.OK );
+            } );
+        }
+
+        public void queryRat( owned IntResultFunc cb )
+        {
+            var req = new uchar[] { GIsiClient.Network.MessageType.RAT_REQ, GIsiClient.Network.RatType.CURRENT_RAT };
+            ll.send( req, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( (ErrorCode) msg.error, -1 );
+                    return;
+                }
+
+                for ( GIsi.SubBlockIter sbi = msg.subblock_iter_create( 2 ); sbi.is_valid(); sbi.next() )
+                {
+                    message( @"Have subblock with ID $(sbi.id), length $(sbi.length)" );
+
+                    switch ( sbi.id )
+                    {
+                        default:
+                            message( @"FIXME: handle unknown subblock with ID $(sbi.id)" );
+                            break;
+                    }
+                }
+
+                cb( ErrorCode.OK, 0 );
+
             } );
         }
     }
