@@ -58,10 +58,12 @@ namespace GIsiComm
 
         public GIsiComm.MTC mtc;
         public GIsiComm.PhoneInfo info;
-        public GIsiComm.SIMAuth simauth;
         public GIsiComm.SIM sim;
-        public GIsiComm.Network net;
         public GIsiComm.Call call;
+        public GIsiComm.SIMAuth simauth;
+        public GIsiComm.Network net;
+        public GIsiComm.SS ss;
+        public GIsiComm.GSS gss;
 
         public GIsiClient.MTC.ModemState state;
 
@@ -105,8 +107,19 @@ namespace GIsiComm
             online = ( state == GIsi.PhonetLinkState.UP ) ? OnlineStatus.YES : OnlineStatus.NO;
             if ( state == GIsi.PhonetLinkState.UP )
             {
-                var fd = Posix.open( "/dev/cmt/cmt_rst_rq/value", Posix.O_WRONLY, 0 );
-                Posix.write( fd, "0", 1 );
+                var fd = Posix.open( "/dev/cmt/cmt_rst_rq/value", Posix.O_RDWR, 0 );
+                if ( fd != -1 )
+                {
+                    var result = Posix.write( fd, "0", 1 );
+                    if ( result == -1 )
+                    {
+                        debug( @"can't reset /dev/cmt/cmt_rst_rq: $(strerror(errno))" );
+                    }
+                }
+                else
+                {
+                    debug( @"can't open /dev/cmt/cmt_rst_rq/value: $(strerror(errno))" );
+                }
             }
         }
 
@@ -160,52 +173,38 @@ namespace GIsiComm
             Timeout.add( 500, launch.callback ); yield;
             sim = new GIsiComm.SIM( m );
             Timeout.add( 500, launch.callback ); yield;
-            simauth = new GIsiComm.SIMAuth( m );
-            Timeout.add( 500, launch.callback ); yield;
             call = new GIsiComm.Call( m );
+            Timeout.add( 500, launch.callback ); yield;
+            ss = new GIsiComm.SS( m );
+            Timeout.add( 500, launch.callback ); yield;
+            gss = new GIsiComm.GSS( m );
+            Timeout.add( 500, launch.callback ); yield;
 
-            Timeout.add_seconds( 1, () => { launch.callback(); return false; } );
+            return ( mtc.reachable && info.reachable && sim.reachable && call.reachable && ss.reachable && gss.reachable );
+        }
+
+        public async bool startup()
+        {
+            var ok = false;
+            mtc.startupSynq( ( error ) => {
+                ok = ( error == ErrorCode.OK );
+                startup.callback();
+            } );
             yield;
 
-            return ( mtc.reachable && info.reachable && sim.reachable && simauth.reachable && call.reachable );
+            Timeout.add_seconds( 2, startup.callback );
+            yield;
+
+            simauth = new GIsiComm.SIMAuth( m );
+            Timeout.add( 500, startup.callback );
+            yield;
+
+            return simauth.reachable;
         }
 
         public async bool poweron()
         {
-            // give MTC a chance to come up
-            Timeout.add_seconds( 1, () => { poweron.callback(); return false; } );
-            yield;
-
-            if ( !mtc.reachable )
-            {
-                debug( "ERROR: MTC unreachable" );
-                return false;
-            }
-
-            var ok = false;
-            mtc.startupSynq( ( error ) => {
-                ok = ( error == ErrorCode.OK );
-                poweron.callback();
-            } );
-            yield;
-
-            if ( !ok )
-            {
-                return false;
-            }
-            ok = true;
-
-            var wait = 5;
-            while ( wait-- > 0 && state == 0xE0 )
-            {
-                Timeout.add_seconds( 1, poweron.callback );
-                yield;
-            }
-            if ( wait == 0 && state == 0xE0 )
-            {
-                debug( "no state change within 5 seconds" );
-                return false;
-            }
+            var ok = true;
 
             if ( state != GIsiClient.MTC.ModemState.NORMAL )
             {
@@ -226,7 +225,7 @@ namespace GIsiComm
                 return true;
             }
 
-            wait = 5;
+            var wait = 5;
             while ( wait-- > 0 && state != GIsiClient.MTC.ModemState.NORMAL )
             {
                 Timeout.add_seconds( 1, poweron.callback );
