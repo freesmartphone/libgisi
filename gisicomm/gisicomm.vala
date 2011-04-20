@@ -67,6 +67,8 @@ namespace GIsiComm
 
         public GIsiClient.MTC.ModemState state;
 
+        public signal void netlinkChanged( bool online );
+
         private async GIsiClient.MTC.ModemState queryModemState()
         {
             bool ok = false;
@@ -105,22 +107,7 @@ namespace GIsiComm
         {
             debug( @"NETLINK STATE = $state" );
             online = ( state == GIsi.PhonetLinkState.UP ) ? OnlineStatus.YES : OnlineStatus.NO;
-            if ( state == GIsi.PhonetLinkState.UP )
-            {
-                var fd = Posix.open( "/dev/cmt/cmt_rst_rq/value", Posix.O_RDWR, 0 );
-                if ( fd != -1 )
-                {
-                    var result = Posix.write( fd, "0", 1 );
-                    if ( result == -1 )
-                    {
-                        debug( @"can't reset /dev/cmt/cmt_rst_rq: $(strerror(errno))" );
-                    }
-                }
-                else
-                {
-                    debug( @"can't open /dev/cmt/cmt_rst_rq/value: $(strerror(errno))" );
-                }
-            }
+            this.netlinkChanged( online == OnlineStatus.YES );
         }
 
         public ModemAccess( string iface )
