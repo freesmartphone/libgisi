@@ -108,6 +108,9 @@ namespace GIsiComm
         private void onNetlinkStateChanged( GIsi.Modem modem, GIsi.PhonetLinkState state, string iface )
         {
             debug( @"NETLINK STATE = $state" );
+            /* ignore the link going down on startup */
+            if ( online == OnlineStatus.UNKNOWN && state == GIsi.PhonetLinkState.DOWN )
+                return;
             online = ( state == GIsi.PhonetLinkState.UP ) ? OnlineStatus.YES : OnlineStatus.NO;
             this.netlinkChanged( online == OnlineStatus.YES );
         }
