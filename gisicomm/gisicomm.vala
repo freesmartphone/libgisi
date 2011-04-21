@@ -1622,10 +1622,12 @@ namespace GIsiComm
 
     public class EpocInfo
     {
+        private uint sv;
         private GIsiServer.EpocInfo ll;
 
         public EpocInfo( GIsi.Modem modem )
         {
+            sv = 2;
             ll = modem.info_server_create();
             ll.handle( 0x00, onSerialNumberReadReq );
         }
@@ -1637,8 +1639,24 @@ namespace GIsiComm
             if ( msg.id != 0x00 )
                 return;
 
+            if ( msg.data[0] != GIsiServer.EpocInfo.SubblockType.SN_IMEI_SV_TO_NET )
+                return;
+            
+            var req = new uint8[] {
+                GIsiServer.EpocInfo.MessageType.SERIAL_NUMBER_READ_RESP,
+                GIsiServer.EpocInfo.IsiCause.OK, 1,
+                GIsiServer.EpocInfo.SubblockType.SN_IMEI_SV_TO_NET, 16,
+                /* Mobile Identity IE, TS 24.008 section 10.5.1.4 */
+                0, 9,
+                /* F in place of IMEI digits and filler */
+                0xf3, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                0x0f | ((sv / 10) << 4),
+                0xf0 | ((sv % 10) & 0x0f),
+                /* Subblock filler */
+                0, 0, 0
+            };
 
-            /* 0x43 == INFO_SB_SN_IMEI_SV_TO_NET */
+            ll.send( msg, req );
         }
     }
 

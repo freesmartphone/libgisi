@@ -1900,7 +1900,8 @@ namespace GIsiServer
             NOT_SUPPORTED,
         }
 
-        public enum MessageId
+        [CCode (cname = "guint8", cprefix = "INFO_", has_type_id = false, cheader_filename = "info.h")]
+        public enum MessageType
         {
             SERIAL_NUMBER_READ_REQ,
             SERIAL_NUMBER_READ_RESP,
@@ -1912,15 +1913,16 @@ namespace GIsiServer
             PRODUCT_INFO_READ_RESP,
         }
 
-        public enum Subblock
+        [CCode (cname = "guint8", cprefix = "INFO_SB_", has_type_id = false, cheader_filename = "info.h")]
+        public enum SubblockType
         {
-            SB_MODEMSW_VERSION,
-            SB_PRODUCT_INFO_NAME,
-            SB_PRODUCT_INFO_MANUFACTURER,
-            SB_SN_IMEI_PLAIN,
-            SB_SN_IMEI_SV_TO_NET,
-            SB_PP,
-            SB_MCUSW_VERSION,
+            MODEMSW_VERSION,
+            PRODUCT_INFO_NAME,
+            PRODUCT_INFO_MANUFACTURER,
+            SN_IMEI_PLAIN,
+            SN_IMEI_SV_TO_NET,
+            PP,
+            MCUSW_VERSION,
         }
             
     }
