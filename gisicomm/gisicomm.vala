@@ -65,6 +65,8 @@ namespace GIsiComm
         public GIsiComm.SS ss;
         public GIsiComm.GSS gss;
 
+        public GIsiComm.EpocInfo epoc;
+
         public GIsiClient.MTC.ModemState state;
 
         public signal void netlinkChanged( bool online );
@@ -165,6 +167,8 @@ namespace GIsiComm
             ss = new GIsiComm.SS( m );
             Timeout.add( 500, launch.callback ); yield;
             gss = new GIsiComm.GSS( m );
+            Timeout.add( 500, launch.callback ); yield;
+            epoc = new GIsiComm.EpocInfo( m );
             Timeout.add( 500, launch.callback ); yield;
 
             return ( mtc.reachable && info.reachable && sim.reachable && call.reachable && ss.reachable && gss.reachable );
@@ -1604,6 +1608,34 @@ namespace GIsiComm
         private void onUssdReceiveIndicationReceived( GIsi.Message msg )
         {
             message( @"$msg received" );
+        }
+    }
+
+    /**
+     * @class EpocInfo
+     *
+     * EPOC Info Server
+     **/
+
+    public class EpocInfo
+    {
+        private GIsiServer.EpocInfo ll;
+
+        public EpocInfo( GIsi.Modem modem )
+        {
+            ll = modem.info_server_create();
+            ll.handle( 0x00, onSerialNumberReadReq );
+        }
+
+        private void onSerialNumberReadReq( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+
+            if ( msg.id != 0x00 )
+                return;
+
+
+            /* 0x43 == INFO_SB_SN_IMEI_SV_TO_NET */
         }
     }
 

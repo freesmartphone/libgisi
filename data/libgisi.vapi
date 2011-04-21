@@ -225,6 +225,13 @@ namespace GIsi
             return (GIsiClient.SS) new GIsi.Client( this, GIsi.PhonetSubsystem.SS );
         }
 
+        // the infoserver factory
+        public GIsiServer.EpocInfo info_server_create()
+        {
+            GIsi.Version ver;
+            return (GIsiServer.EpocInfo) new GIsi.Server( this, GIsi.PhonetSubsystem.EPOC_INFO, ver );
+        }
+
         //
         // assorted modem functions
         //
@@ -294,7 +301,7 @@ namespace GIsi
      * Handle to a pending ISI message
      **/
     [Compact]
-    [CCode (cheader_filename = "libgisi.h")]
+    [CCode (free_function = "", cheader_filename = "libgisi.h")]
     public class Pending
     {
         [CCode (cname = "g_isi_pending_remove")]
@@ -350,18 +357,25 @@ namespace GIsi
     [CCode (free_function = "g_isi_server_destroy", cheader_filename = "libgisi.h")]
     public class Server
     {
+        // construction
         [CCode (cname = "g_isi_server_create")]
-        public static unowned GIsi.Server create (GIsi.Modem modem, uchar resource, GIsi.Version version);
-        [CCode (cname = "g_isi_server_handle")]
-        public unowned GIsi.Pending handle (uchar type, GIsi.NotifyFunc notify, void* data);
-        [CCode (cname = "g_isi_server_modem")]
-        public unowned GIsi.Modem modem ();
-        [CCode (cname = "g_isi_server_resource")]
-        public uchar resource ();
+        public Server( GIsi.Modem modem, GIsi.PhonetSubsystem resource, GIsi.Version version );
+
+        // properties
+        public unowned GIsi.Modem modem { [CCode (cname = "g_isi_server_modem")] get; }
+        public PhonetSubsystem resource { [CCode (cname = "g_isi_server_resource")] get; }
+
+        // send a message
         [CCode (cname = "g_isi_server_send")]
-        public int send (GIsi.Message req, void* data, size_t len);
+        public bool send( GIsi.Message req, uint8[] msg );
+
+        // ???
         [CCode (cname = "g_isi_server_vsend")]
-        public int vsend (GIsi.Message req, void* iov, size_t iovlen);
+        public bool vsend( GIsi.Message req, uint8[] iov );
+
+        [CCode (cname = "g_isi_server_handle")]
+        public GIsi.Pending handle( uchar type, GIsi.NotifyFunc notify );
+
     }
 
     /**
@@ -610,7 +624,7 @@ namespace GIsi
     [CCode (cname = "g_isi_phonet_read", cheader_filename = "libgisi.h")]
     public static ssize_t phonet_read( GLib.IOChannel io, void* buf, size_t len, void* addr );
 #endif
-}
+} /* namespace GIsi */
 
 /**
  * @namespace GIsiClient
@@ -1854,4 +1868,63 @@ namespace GIsiClient
         }
     }
 
-} /* namespace GIsi */
+} /* namespace GIsiClient */
+
+
+/**
+ * @namespace GIsiServer
+ *
+ * The high level protocol servers
+ **/
+
+[CCode (cprefix = "")]
+namespace GIsiServer
+{
+    /**
+     * @class EpocInfo
+     *
+     * EPOC Info Server
+     **/
+    [Compact]
+    [CCode (cname = "GIsiServer", cprefix = "INFO_", free_function = "g_isi_server_destroy", cheader_filename = "libgisi.h,info.h")]
+    public class EpocInfo : GIsi.Server
+    {
+        private EpocInfo();
+
+        [CCode (cname = "guint8", cprefix = "INFO_", has_type_id = false, cheader_filename = "info.h")]
+        public enum IsiCause
+        {
+            OK,
+            FAIL,
+            NO_NUMBER,
+            NOT_SUPPORTED,
+        }
+
+        public enum MessageId
+        {
+            SERIAL_NUMBER_READ_REQ,
+            SERIAL_NUMBER_READ_RESP,
+            PP_READ_REQ,
+            PP_READ_RESP,
+            VERSION_READ_REQ,
+            VERSION_READ_RESP,
+            PRODUCT_INFO_READ_REQ,
+            PRODUCT_INFO_READ_RESP,
+        }
+
+        public enum Subblock
+        {
+            SB_MODEMSW_VERSION,
+            SB_PRODUCT_INFO_NAME,
+            SB_PRODUCT_INFO_MANUFACTURER,
+            SB_SN_IMEI_PLAIN,
+            SB_SN_IMEI_SV_TO_NET,
+            SB_PP,
+            SB_MCUSW_VERSION,
+        }
+            
+    }
+
+} /* namespace GIsiServer */
+
+
