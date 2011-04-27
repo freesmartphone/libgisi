@@ -173,8 +173,10 @@ namespace GIsiComm
             Timeout.add( 500, launch.callback ); yield;
             epoc = new GIsiComm.EpocInfo( m );
             Timeout.add( 500, launch.callback ); yield;
+            net = new GIsiComm.Network( m );
+            Timeout.add( 500, launch.callback ); yield;
 
-            return ( mtc.reachable && info.reachable && sim.reachable && call.reachable && ss.reachable && gss.reachable );
+            return ( mtc.reachable && info.reachable && sim.reachable && call.reachable && ss.reachable && gss.reachable && net.reachable );
         }
 
         public async bool startup()
@@ -230,8 +232,6 @@ namespace GIsiComm
                 debug( "no state change within 5 seconds" );
                 return false;
             }
-
-            net = new GIsiComm.Network( m );
 
             return true;
         }
@@ -1641,7 +1641,7 @@ namespace GIsiComm
 
             if ( msg.data[0] != GIsiServer.EpocInfo.SubblockType.SN_IMEI_SV_TO_NET )
                 return;
-            
+
             var req = new uint8[] {
                 GIsiServer.EpocInfo.MessageType.SERIAL_NUMBER_READ_RESP,
                 GIsiServer.EpocInfo.IsiCause.OK, 1,
