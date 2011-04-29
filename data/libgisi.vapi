@@ -225,6 +225,11 @@ namespace GIsi
             return (GIsiClient.SS) new GIsi.Client( this, GIsi.PhonetSubsystem.SS );
         }
 
+        public GIsiClient.GPDS gpds_client_create()
+        {
+            return (GIsiClient.GPDS) new GIsi.Client( this, GIsi.PhonetSubsystem.GPDS );
+        }
+
         // the infoserver factory
         public GIsiServer.EpocInfo info_server_create()
         {
@@ -1865,6 +1870,287 @@ namespace GIsiClient
         public enum ResponseData
         {
             SEND_ADDITIONAL_INFO,
+        }
+    }
+
+    /**
+     * @class GPDS
+     *
+     * General Packat Data Server
+     **/
+    [Compact]
+    [CCode (cname = "GIsiClient", cprefix = "SS_", free_function = "g_isi_client_destroy", cheader_filename = "libgisi.h,gpds.h")]
+    public class GPDS : GIsi.Client
+    {
+        private GPDS();
+
+        [CCode (cname = "guint8", cprefix = "GPDS_", has_type_id = false, cheader_filename = "gpds.h")]
+        public enum MessageType
+        {
+	        LL_CONFIGURE_REQ,
+	        LL_CONFIGURE_RESP,
+	        CONTEXT_ID_CREATE_REQ,
+	        CONTEXT_ID_CREATE_RESP,
+	        CONTEXT_ID_CREATE_IND,
+	        CONTEXT_ID_DELETE_IND,
+	        CONTEXT_CONFIGURE_REQ,
+	        CONTEXT_CONFIGURE_RESP,
+	        CONTEXT_ACTIVATE_REQ,
+	        CONTEXT_ACTIVATE_RESP,
+	        CONTEXT_ACTIVATE_IND,
+	        CONTEXT_DEACTIVATE_REQ,
+	        CONTEXT_DEACTIVATE_RESP,
+	        CONTEXT_DEACTIVATE_IND,
+	        CONTEXT_MWI_ACT_REQUEST_IND,
+	        CONTEXT_NWI_ACT_REJECT_REQ,
+	        CONTEXT_NWI_ACT_REJECT_RESP,
+	        CONFIGURE_REQ,
+	        CONFIGURE_RESP,
+	        ATTACH_REQ,
+	        ATTACH_RESP,
+	        ATTACH_IND,
+	        DETACH_REQ,
+	        DETACH_RESP,
+	        DETACH_IND,
+	        STATUS_REQ,
+	        STATUS_RESP,
+	        SMS_PDU_SEND_REQ,
+	        SMS_PDU_SEND_RESP,
+	        SMS_PDU_RECEIVE_IND,
+	        TRANSFER_STATUS_IND,
+	        CONTEXT_ACTIVATE_FAIL_IND,
+	        LL_BIND_REQ,
+	        LL_BIND_RESP,
+	        CONTEXT_STATUS_REQ,
+	        CONTEXT_STATUS_RESP,
+	        CONTEXT_STATUS_IND,
+	        CONTEXT_ACTIVATING_IND,
+	        CONTEXT_MODIFY_REQ,
+	        CONTEXT_MODIFY_RESP,
+	        CONTEXT_MODIFY_IND,
+	        ATTACH_FAIL_IND,
+	        CONTEXT_DEACTIVATING_IND,
+	        CONFIGURATION_INFO_REQ,
+	        CONFIGURATION_INFO_RESP,
+	        CONFIGURATION_INFO_IND,
+	        CONTEXT_AUTH_REQ,
+	        CONTEXT_AUTH_RESP,
+	        TEST_MODE_REQ,
+	        TEST_MODE_RESP,
+	        RADIO_ACTIVITY_IND,
+	        FORCED_READY_STATE_REQ,
+	        FORCED_READY_STATE_RESP,
+	        CONTEXTS_CLEAR_REQ,
+	        CONTEXTS_CLEAR_RESP,
+	        MBMS_SERVICE_SELECTION_REQ,
+	        MBMS_SERVICE_SELECTION_RESP,
+	        MBMS_STATUS_IND,
+	        MBMS_CONTEXT_CREATE_REQ,
+	        MBMS_CONTEXT_CREATE_RESP,
+	        MBMS_CONTEXT_ACTIVATE_REQ,
+	        MBMS_CONTEXT_ACTIVATE_RESP,
+	        MBMS_CONTEXT_DELETE_REQ,
+	        MBMS_CONTEXT_DELETE_RESP,
+	        MBMS_CONTEXT_DELETE_IND,
+	        MBMS_SERVICE_SELECTION_IND,
+	        MBMS_SERVICE_AVAILABLE_IND,
+	        TEST_REQ,
+	        TEST_RESP,
+            COMMON_MESSAGE,
+        }
+
+        [CCode (cname = "guint8", cprefix = "GPDS_", has_type_id = false, cheader_filename = "gpds.h")]
+        public enum SubblockType
+        {
+	        COMP_INFO,
+	        QOS_REQ_INFO,
+	        QOS_MIN_INFO,
+	        QOS_NEG_INFO,
+	        PDP_ADDRESS_INFO,
+	        APN_INFO,
+	        QOS99_REQ_INFO,
+	        QOS99_MIN_INFO,
+	        QOS99_NEG_INFO,
+	        TFT_INFO,
+	        TFT_FILTER_INFO,
+	        USER_NAME_INFO,
+	        PASSWORD_INFO,
+	        PDNS_ADDRESS_INFO,
+	        SDNS_ADDRESS_INFO,
+	        CHALLENGE_INFO,
+	        DNS_ADDRESS_REQ_INFO,
+        }
+
+        [CCode (cname = "guint8", cprefix = "GPDS_", has_type_id = false, cheader_filename = "gpds.h")]
+        public enum Status
+        {
+	        ERROR,
+	        OK,
+	        FAIL,
+        }
+
+        [CCode (cname = "guint8", cprefix = "GPDS_", has_type_id = false, cheader_filename = "sim.h")]
+        public enum IsiCause
+        {
+	        CAUSE_UNKNOWN,
+	        CAUSE_IMSI,
+	        CAUSE_MS_ILLEGAL,
+	        CAUSE_ME_ILLEGAL,
+	        CAUSE_GPRS_NOT_ALLOWED,
+	        NOT_ALLOWED,
+	        CAUSE_MS_IDENTITY,
+	        CAUSE_DETACH,
+	        PLMN_NOT_ALLOWED,
+	        LA_NOT_ALLOWED,
+	        ROAMING_NOT_ALLOWED,
+	        CAUSE_GPRS_NOT_ALLOWED_IN_PLMN,
+	        CAUSE_MSC_NOT_REACH,
+	        CAUSE_PLMN_FAIL,
+	        CAUSE_NETWORK_CONGESTION,
+	        CAUSE_MBMS_BEARER_CAPABILITY_INSUFFICIENT,
+	        CAUSE_LLC_SNDCP_FAILURE,
+	        CAUSE_RESOURCE_INSUFF,
+	        CAUSE_APN,
+	        CAUSE_PDP_UNKNOWN,
+	        CAUSE_AUTHENTICATION,
+	        CAUSE_ACT_REJECT_GGSN,
+	        CAUSE_ACT_REJECT,
+	        CAUSE_SERV_OPT_NOT_SUPPORTED,
+	        CAUSE_SERV_OPT_NOT_SUBSCRIBED,
+	        CAUSE_SERV_OPT_OUT_OF_ORDER,
+	        CAUSE_NSAPI_ALREADY_USED,
+	        CAUSE_DEACT_REGULAR,
+	        CAUSE_QOS,
+	        CAUSE_NETWORK_FAIL,
+	        CAUSE_REACTIVATION_REQ,
+	        CAUSE_FEAT_NOT_SUPPORTED,
+	        CAUSE_TFT_SEMANTIC_ERROR,
+	        CAUSE_TFT_SYNTAX_ERROR,
+	        CAUSE_CONTEXT_UNKNOWN,
+	        CAUSE_FILTER_SEMANTIC_ERROR,
+	        CAUSE_FILTER_SYNTAX_ERROR,
+	        CAUSE_CONT_WITHOUT_TFT,
+	        CAUSE_MULTICAST_MEMBERSHIP_TIMEOUT,
+	        CAUSE_INVALID_MANDATORY_INFO,
+	        CAUSE_MSG_TYPE_NON_EXISTENTOR_NOT_IMPLTD,
+	        CAUSE_MSG_TYPE_NOT_COMPATIBLE_WITH_PROTOCOL_STATE,
+	        CAUSE_IE_NON_EXISTENT_OR_NOT_IMPLEMENTED,
+	        CAUSE_CONDITIONAL_IE_ERROR,
+	        CUASEMSG_NOT_COMPATIBLE_WITH_PROTOCOL_STATE,
+	        CAUSE_UNSPECIFIED,
+	        CAUSE_APN_INCOMPATIBLE_WITH_CURR_CTXT,
+	        CAUSE_FDN,
+	        CAUSE_USER_ABORT,
+	        CAUSE_CS_INACTIVE,
+	        CAUSE_CSD_OVERRIDE,
+	        CAUSE_APN_CONTROL,
+	        CAUSE_CALL_CONTROL,
+	        CAUSE_TEMPERATURE_LIMIT,
+	        CAUSE_RETRY_COUNTER_EXPIRED,
+	        CAUSE_NO_CONNECTION,
+	        CAUSE_DETACHED,
+	        CAUSE_NO_SERVICE_POWER_SAVE,
+	        CAUSE_SIM_REMOVED,
+	        CAUSE_POWER_OFF,
+	        CAUSE_LAI_FORBIDDEN_NATIONAL_ROAM_LIST,
+	        CAUSE_LAI_FORBIDDEN_REG_PROVISION_LIST,
+	        CAUSE_ACCESS_BARRED,
+	        CAUSE_FATAL_FAILURE,
+	        CAUSE_AUT_FAILURE,
+        }
+
+        [CCode (cname = "guint8", cprefix = "GPDS_TRANSFER_", has_type_id = false, cheader_filename = "gpds.h")]
+        public enum TransferStatus
+        {
+	        NOT_AVAIL,
+	        AVAIL,
+        }
+
+        [CCode (cname = "guint8", cprefix = "GPDS_TRANSFER_CAUSE_", has_type_id = false, cheader_filename = "gpds.h")]
+        public enum TransferCause
+        {
+	        ATTACHED,
+	        DETACHED,
+	        RESUMED,
+	        SUSPENDED_NO_COVERAGE,
+	        SUSPENDED_CALL_SMS,
+	        SUSPENDED_CALL,
+	        SUSPENDED_RAU,
+	        SUSPENDED_LU,
+	        DSAC_RESTRICTION,
+        }
+
+        [CCode (cname = "guint8", cprefix = "GPDS_CONT_TYPE_", has_type_id = false, cheader_filename = "gpds.h")]
+        public enum ContextType
+        {
+	        NORMAL,
+	        NWI,
+	        SEC,
+        }
+
+        [CCode (cname = "guint8", cprefix = "GPDS_LL_", has_type_id = false, cheader_filename = "gpds.h")]
+        public enum PppMode
+        {
+	        FRAMED_PPP,
+	        NONFRAMED_PPP,
+	        PLAIN,
+        }
+
+        [CCode (cname = "guint8", cprefix = "GPDS_PDP_TYPE_", has_type_id = false, cheader_filename = "gpds.h")]
+        public enum PdpType
+        {
+	        PPP,
+	        IPV4,
+	        IPV6,
+	        DEFAULT,
+        }
+
+        [CCode (cname = "guint8", cprefix = "GPDS_", has_type_id = false, cheader_filename = "gpds.h")]
+        public enum RequestMode
+        {
+	        FOLLOW_OFF,
+	        FOLLOW_ON,
+        }
+
+        [CCode (cname = "guint8", cprefix = "GPDS_", has_type_id = false, cheader_filename = "gpds.h")]
+        public enum AttachStatus
+        {
+	        DETACHED,
+	        ATTACHED,
+        }
+
+        [CCode (cname = "guint8", cprefix = "GPDS_ATTACH_MODE_", has_type_id = false, cheader_filename = "gpds.h")]
+        public enum AttachMode
+        {
+	        MANUAL,
+	        AUTOMATIC,
+	        DEFAULT,
+        }
+
+        [CCode (cname = "guint8", cprefix = "GPDS_MT_ACT_MODE_", has_type_id = false, cheader_filename = "gpds.h")]
+        public enum MtActMode
+        {
+	        REJECT,
+	        ACCEPT,
+	        DEFAULT,
+        }
+
+        [CCode (cname = "guint8", cprefix = "GPDS_CLASSC_MODE_", has_type_id = false, cheader_filename = "gpds.h")]
+        public enum ClassCMode
+        {
+	        GPRS,
+	        GSM,
+	        DEFAULT,
+        }
+
+        [CCode (cname = "guint8", cprefix = "GPDS_AOL_CTX_", has_type_id = false, cheader_filename = "gpds.h")]
+        public enum AolContext
+        {
+	        NOT_ACTIVE,
+	        HPLMN_ACTIVE,
+	        VPLMN_ACTIVE,
+	        ACTIVE,
+	        DEFAULT,
         }
     }
 

@@ -1614,6 +1614,147 @@ namespace GIsiComm
         }
     }
 
+    public class GPDS : AbstractBaseClient
+    {
+        private GIsiClient.GPDS ll;
+
+        public GPDS( GIsi.Modem modem )
+        {
+            client = ll = modem.gpds_client_create();
+        }
+
+        protected override void onSubsystemIsReachable()
+        {
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ID_CREATE_IND, onContextIdCreateIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ID_DELETE_IND, onContextIdDeleteIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ACTIVATE_IND, onContextActivateIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_DEACTIVATE_IND, onContextDeactivateIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_MWI_ACT_REQUEST_IND, onContextMwiActRequestIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.ATTACH_IND, onAttachIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.DETACH_IND, onDetachIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.SMS_PDU_RECEIVE_IND, onSmsPduReceiveIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.TRANSFER_STATUS_IND, onTransferStatusIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ACTIVATE_FAIL_IND, onContextActivateFailIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_STATUS_IND, onContextStatusIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ACTIVATING_IND, onContextActivatingIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_MODIFY_IND, onContextModifyIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.ATTACH_FAIL_IND, onAttachFailIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_DEACTIVATING_IND, onContextDeactivatingIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONFIGURATION_INFO_IND, onConfigurationInfoIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.RADIO_ACTIVITY_IND, onRadioActivityIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.MBMS_STATUS_IND, onMbmsStatusIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.MBMS_CONTEXT_DELETE_IND, onMbmsContextDeleteIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.MBMS_SERVICE_SELECTION_IND, onMbmsServiceSelectionIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.MBMS_SERVICE_AVAILABLE_IND, onMbmsServiceAvailableIndicationReceived );
+        }
+
+        private void onContextIdCreateIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onContextIdDeleteIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onContextActivateIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onContextDeactivateIndicationReceived( GIsi.Message msg )                         
+        {
+            message( @"$msg received" );
+        }
+
+        private void onContextMwiActRequestIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onAttachIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onDetachIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onSmsPduReceiveIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onTransferStatusIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onContextActivateFailIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onContextStatusIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onContextActivatingIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onContextModifyIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onAttachFailIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onContextDeactivatingIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onConfigurationInfoIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onRadioActivityIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onMbmsStatusIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onMbmsContextDeleteIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onMbmsServiceSelectionIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+        private void onMbmsServiceAvailableIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+        }
+
+    }
+
     /**
      * @class EpocInfo
      *
