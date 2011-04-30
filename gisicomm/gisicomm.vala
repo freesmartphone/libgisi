@@ -160,21 +160,23 @@ namespace GIsiComm
         public async bool launch()
         {
             mtc = new GIsiComm.MTC( m );
-            Timeout.add( 500, launch.callback ); yield;
+            yield mtc.waitUntilSubsystemIsOnline();
             info = new GIsiComm.PhoneInfo( m );
-            Timeout.add( 500, launch.callback ); yield;
+            yield info.waitUntilSubsystemIsOnline();
             sim = new GIsiComm.SIM( m );
-            Timeout.add( 500, launch.callback ); yield;
+            yield sim.waitUntilSubsystemIsOnline();
+            simauth = new GIsiComm.SIMAuth( m );
+            yield simauth.waitUntilSubsystemIsOnline();
             call = new GIsiComm.Call( m );
-            Timeout.add( 500, launch.callback ); yield;
+            yield call.waitUntilSubsystemIsOnline();
             ss = new GIsiComm.SS( m );
-            Timeout.add( 500, launch.callback ); yield;
+            yield ss.waitUntilSubsystemIsOnline();
             gss = new GIsiComm.GSS( m );
-            Timeout.add( 500, launch.callback ); yield;
-            epoc = new GIsiComm.EpocInfo( m );
-            Timeout.add( 500, launch.callback ); yield;
+            yield gss.waitUntilSubsystemIsOnline();
             net = new GIsiComm.Network( m );
-            Timeout.add( 500, launch.callback ); yield;
+            yield net.waitUntilSubsystemIsOnline();
+
+            epoc = new GIsiComm.EpocInfo( m );
 
             return ( mtc.reachable && info.reachable && sim.reachable && call.reachable && ss.reachable && gss.reachable && net.reachable );
         }
@@ -191,11 +193,7 @@ namespace GIsiComm
             Timeout.add_seconds( 2, startup.callback );
             yield;
 
-            simauth = new GIsiComm.SIMAuth( m );
-            Timeout.add( 500, startup.callback );
-            yield;
-
-            return simauth.reachable;
+            return true;
         }
 
         public async bool poweron()
@@ -249,19 +247,18 @@ namespace GIsiComm
         public bool reachable;
         protected unowned GIsi.Client client;
 
+        public SourceFunc cb;
+
         public AbstractBaseClient()
         {
-            Idle.add( () => {
-                onIdle(); return false;
-            } );
         }
 
-        private void onIdle()
+        public async void waitUntilSubsystemIsOnline()
         {
-            if ( client != null )
-            {
-                client.verify( onReachabilityResultReceived );
-            }
+            assert( client != null );
+            client.verify( onReachabilityResultReceived );
+            cb = waitUntilSubsystemIsOnline.callback;
+            yield;
         }
 
         private void onReachabilityResultReceived( GIsi.Message msg )
@@ -271,10 +268,14 @@ namespace GIsiComm
             {
                 warning( "Subsystem not reachable" );
                 reachable = false;
-                return;
             }
-            reachable = true;
-            onSubsystemIsReachable();
+            else
+            {
+                reachable = true;
+                onSubsystemIsReachable();
+            }
+            cb();
+            cb = null;
         }
 
         protected abstract void onSubsystemIsReachable();
@@ -533,7 +534,6 @@ namespace GIsiComm
      *
      * SIM Authorization Interface
      **/
-
     public class SIMAuth : AbstractBaseClient
     {
         protected GIsiClient.SIMAuth ll;
