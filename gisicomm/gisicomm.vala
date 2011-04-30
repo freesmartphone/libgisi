@@ -64,6 +64,7 @@ namespace GIsiComm
         public GIsiComm.Network net;
         public GIsiComm.SS ss;
         public GIsiComm.GSS gss;
+        public GIsiComm.GPDS gpds;
 
         public GIsiComm.EpocInfo epoc;
 
@@ -175,10 +176,12 @@ namespace GIsiComm
             yield gss.waitUntilSubsystemIsOnline();
             net = new GIsiComm.Network( m );
             yield net.waitUntilSubsystemIsOnline();
+            gpds = new GIsiComm.GPDS( m );
+            yield gpds.waitUntilSubsystemIsOnline();
 
             epoc = new GIsiComm.EpocInfo( m );
 
-            return ( mtc.reachable && info.reachable && sim.reachable && call.reachable && ss.reachable && gss.reachable && net.reachable );
+            return ( mtc.reachable && info.reachable && sim.reachable && call.reachable && ss.reachable && gss.reachable && net.reachable && gpds.reachable );
         }
 
         public async bool startup()
@@ -245,6 +248,7 @@ namespace GIsiComm
     public abstract class AbstractBaseClient
     {
         public bool reachable;
+        public uint16 obj;
         protected unowned GIsi.Client client;
 
         public SourceFunc cb;
@@ -272,6 +276,7 @@ namespace GIsiComm
             else
             {
                 reachable = true;
+                //obj = msg.object();
                 onSubsystemIsReachable();
             }
             cb();
@@ -308,7 +313,7 @@ namespace GIsiComm
     {
         if ( !msg.ok() )
         {
-            cb( (ErrorCode) msg.error, null );
+            cb( ErrorCode.INVALID_FORMAT, null );
             return;
         }
 
@@ -393,7 +398,7 @@ namespace GIsiComm
                 if ( !msg.ok() )
                 {
                     debug( "error reading state" );
-                    cb( (ErrorCode) msg.error, (GIsiClient.MTC.ModemState) 0xE0, (GIsiClient.MTC.ModemState) 0xE1 );
+                    cb( ErrorCode.INVALID_FORMAT, (GIsiClient.MTC.ModemState) 0xE0, (GIsiClient.MTC.ModemState) 0xE1 );
                     return;
                 }
                 GIsiClient.MTC.ModemState current = (GIsiClient.MTC.ModemState) msg.data[0];
@@ -420,7 +425,7 @@ namespace GIsiComm
             ll.send_with_timeout( req, GIsiClient.MTC.STATE_REQ_TIMEOUT, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error, 0xFF );
+                    cb( ErrorCode.INVALID_FORMAT, 0xFF );
                     return;
                 }
                 GIsiClient.MTC.IsiCause cause = (GIsiClient.MTC.IsiCause) msg.data[0];
@@ -434,7 +439,7 @@ namespace GIsiComm
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error );
+                    cb( ErrorCode.INVALID_FORMAT );
                     return;
                 }
                 cb( ErrorCode.OK );
@@ -448,7 +453,7 @@ namespace GIsiComm
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error, 0 );
+                    cb( ErrorCode.INVALID_FORMAT, 0 );
                     return;
                 }
                 GIsiClient.MTC.IsiCause cause = (GIsiClient.MTC.IsiCause) msg.data[0];
@@ -572,7 +577,7 @@ namespace GIsiComm
             ll.send_with_timeout( req, GIsiClient.SIMAuth.TIMEOUT, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error, 0 );
+                    cb( ErrorCode.INVALID_FORMAT, 0 );
                     return;
                 }
 
@@ -621,7 +626,7 @@ namespace GIsiComm
             ll.send_with_timeout( req, GIsiClient.SIMAuth.TIMEOUT, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error, 0 );
+                    cb( ErrorCode.INVALID_FORMAT, 0 );
                     return;
                 }
 
@@ -710,7 +715,7 @@ namespace GIsiComm
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error, null );
+                    cb( ErrorCode.INVALID_FORMAT, null );
                     return;
                 }
                 if ( msg.data[1] == GIsiClient.SIM.IsiCause.SERV_DATA_NOT_AVAIL )
@@ -720,7 +725,7 @@ namespace GIsiComm
                 }
                 if ( msg.data[1] != GIsiClient.SIM.IsiCause.SERV_OK )
                 {
-                    cb( (ErrorCode) msg.data[1], null );
+                    cb( ErrorCode.INVALID_FORMAT, null );
                     return;
                 }
 
@@ -747,7 +752,7 @@ namespace GIsiComm
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error, null );
+                    cb( ErrorCode.INVALID_FORMAT, null );
                     return;
                 }
                 if ( msg.data[1] == GIsiClient.SIM.IsiCause.SERV_DATA_NOT_AVAIL )
@@ -757,7 +762,7 @@ namespace GIsiComm
                 }
                 if ( msg.data[1] != GIsiClient.SIM.IsiCause.SERV_OK )
                 {
-                    cb( (ErrorCode) msg.data[1], null );
+                    cb( ErrorCode.INVALID_FORMAT, null );
                     return;
                 }
 
@@ -787,7 +792,7 @@ namespace GIsiComm
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error, null );
+                    cb( ErrorCode.INVALID_FORMAT, null );
                     return;
                 }
 
@@ -1090,7 +1095,7 @@ namespace GIsiComm
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error, null );
+                    cb( ErrorCode.INVALID_FORMAT, null );
                     return;
                 }
 
@@ -1107,7 +1112,7 @@ namespace GIsiComm
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error, -1 );
+                    cb( ErrorCode.INVALID_FORMAT, -1 );
                     return;
                 }
 
@@ -1139,7 +1144,7 @@ namespace GIsiComm
             ll.send_with_timeout( req, GIsiClient.Network.SCAN_TIMEOUT, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error, null );
+                    cb( ErrorCode.INVALID_FORMAT, null );
                     return;
                 }
 
@@ -1199,7 +1204,7 @@ namespace GIsiComm
             ll.send_with_timeout( req, GIsiClient.Network.SET_TIMEOUT, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error );
+                    cb( ErrorCode.INVALID_FORMAT );
                     return;
                 }
                 cb( ErrorCode.OK );
@@ -1234,7 +1239,7 @@ namespace GIsiComm
             ll.send_with_timeout( req, GIsiClient.Network.SET_TIMEOUT, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error );
+                    cb( ErrorCode.INVALID_FORMAT );
                     return;
                 }
                 cb( ErrorCode.OK );
@@ -1247,7 +1252,7 @@ namespace GIsiComm
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error, -1 );
+                    cb( ErrorCode.INVALID_FORMAT, -1 );
                     return;
                 }
 
@@ -1439,7 +1444,7 @@ namespace GIsiComm
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error );
+                    cb( ErrorCode.INVALID_FORMAT );
                     return;
                 }
                 cb( ErrorCode.OK );
@@ -1462,7 +1467,7 @@ namespace GIsiComm
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error );
+                    cb( ErrorCode.INVALID_FORMAT );
                     return;
                 }
                 cb( ErrorCode.OK );
@@ -1476,7 +1481,7 @@ namespace GIsiComm
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error );
+                    cb( ErrorCode.INVALID_FORMAT );
                     return;
                 }
 
@@ -1498,7 +1503,7 @@ namespace GIsiComm
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error );
+                    cb( ErrorCode.INVALID_FORMAT );
                     return;
                 }
 
@@ -1551,7 +1556,7 @@ namespace GIsiComm
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error );
+                    cb( ErrorCode.INVALID_FORMAT );
                     return;
                 }
 
@@ -1617,36 +1622,113 @@ namespace GIsiComm
     public class GPDS : AbstractBaseClient
     {
         private GIsiClient.GPDS ll;
+        //private GIsi.Modem modem;
+        //private GIsi.PEP pep;
+        //private GIsi.Pipe pipe;
 
-        public GPDS( GIsi.Modem modem )
+        public GPDS( GIsi.Modem _modem )
         {
-            client = ll = modem.gpds_client_create();
+            //modem = _modem;
+            client = ll = _modem.gpds_client_create();
         }
 
         protected override void onSubsystemIsReachable()
         {
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ID_CREATE_IND, onContextIdCreateIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ID_DELETE_IND, onContextIdDeleteIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.DETACH_IND, onDetachIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.TRANSFER_STATUS_IND, onTransferStatusIndicationReceived );
             ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ACTIVATE_IND, onContextActivateIndicationReceived );
             ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_DEACTIVATE_IND, onContextDeactivateIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_MWI_ACT_REQUEST_IND, onContextMwiActRequestIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.ATTACH_IND, onAttachIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.DETACH_IND, onDetachIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.SMS_PDU_RECEIVE_IND, onSmsPduReceiveIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.TRANSFER_STATUS_IND, onTransferStatusIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ACTIVATE_FAIL_IND, onContextActivateFailIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_STATUS_IND, onContextStatusIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ACTIVATING_IND, onContextActivatingIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_MODIFY_IND, onContextModifyIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.ATTACH_FAIL_IND, onAttachFailIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_DEACTIVATING_IND, onContextDeactivatingIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONFIGURATION_INFO_IND, onConfigurationInfoIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.RADIO_ACTIVITY_IND, onRadioActivityIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.MBMS_STATUS_IND, onMbmsStatusIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.MBMS_CONTEXT_DELETE_IND, onMbmsContextDeleteIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.MBMS_SERVICE_SELECTION_IND, onMbmsServiceSelectionIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.MBMS_SERVICE_AVAILABLE_IND, onMbmsServiceAvailableIndicationReceived );
+
+            //ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ID_CREATE_IND, onContextIdCreateIndicationReceived );
+            //ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ID_DELETE_IND, onContextIdDeleteIndicationReceived );
+            //ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_MWI_ACT_REQUEST_IND, onContextMwiActRequestIndicationReceived );
+            //ll.ind_subscribe( GIsiClient.GPDS.MessageType.ATTACH_IND, onAttachIndicationReceived );
+            //ll.ind_subscribe( GIsiClient.GPDS.MessageType.SMS_PDU_RECEIVE_IND, onSmsPduReceiveIndicationReceived );
+            //ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ACTIVATE_FAIL_IND, onContextActivateFailIndicationReceived );
+            //ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_STATUS_IND, onContextStatusIndicationReceived );
+            //ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ACTIVATING_IND, onContextActivatingIndicationReceived );
+            //ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_MODIFY_IND, onContextModifyIndicationReceived );
+            //ll.ind_subscribe( GIsiClient.GPDS.MessageType.ATTACH_FAIL_IND, onAttachFailIndicationReceived );
+            //ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_DEACTIVATING_IND, onContextDeactivatingIndicationReceived );
+            //ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONFIGURATION_INFO_IND, onConfigurationInfoIndicationReceived );
+            //ll.ind_subscribe( GIsiClient.GPDS.MessageType.RADIO_ACTIVITY_IND, onRadioActivityIndicationReceived );
+            //ll.ind_subscribe( GIsiClient.GPDS.MessageType.MBMS_STATUS_IND, onMbmsStatusIndicationReceived );
+            //ll.ind_subscribe( GIsiClient.GPDS.MessageType.MBMS_CONTEXT_DELETE_IND, onMbmsContextDeleteIndicationReceived );
+            //ll.ind_subscribe( GIsiClient.GPDS.MessageType.MBMS_SERVICE_SELECTION_IND, onMbmsServiceSelectionIndicationReceived );
+            //ll.ind_subscribe( GIsiClient.GPDS.MessageType.MBMS_SERVICE_AVAILABLE_IND, onMbmsServiceAvailableIndicationReceived );
         }
+
+//        public void activate( VoidResultFunc cb )
+//        {
+//            reset_context();
+//
+//            pep = GIsi.pep.create( modem, ( pep ) => {
+//                if ( pep == null )
+//                {
+//                    cb( ErrorCode.INVALID_FORMAT );
+//                    return;
+//                }
+//            } );
+//
+//            pipe = GIsi.Pipe.create( modem, ( pipe ) => {
+//                if ( pipe == null )
+//                {
+//                    cb( ErrorCode.INVALID_FORMAT );
+//                    return;
+//                }
+//            }, pep.get_object(), obj, GIsi.PEP.Type.GPRS, GIsi.PEP.Type.GPRS );
+//
+//            var req = new uint8[] { GIsiClient.GPDS.MessageType.CONTEXT_ID_CREATE_REQ };
+//            ll.send( req, ( msg ) => {
+//                if ( !msg.ok() )
+//                {
+//                    cb( ErrorCode.INVALID_FORMAT );
+//                    reset_context();
+//                    return;
+//                }
+//                ctxid = msg.data[0];
+//            } );
+//
+//            var req = new uint8[] {
+//                    GIsiClient.GPDS.MessageType.LL_CONFIGURE_REQ,
+//                    ctxid, pipe.get_handle(), LL_PLAIN 
+//            };
+//            ll.send( req, ( msg ) => {
+//                if ( !msg.ok() )
+//                {
+//                }
+//            } );
+//
+//        }
+//
+//        public void deactivate()
+//        {
+//            var req = new uint8[] {
+//                    GIsiClient.GPDS.MessageType.CONTEXT_DEACTIVATE_REQ,
+//                    contextid
+//            };
+//            
+//            ll.send( req, ( msg ) => {
+//                if ( !msg.ok() )
+//                {
+//                    cb( ErrorCode.INVALID_FORMAT );
+//                    return;
+//                }
+//
+//                cb( ErrorCode.OK );
+//            } );
+//
+//            reset_context();
+//        }
+//
+//        private void reset_context()
+//        {
+//            if ( pipe != null )
+//                delete pipe;
+//
+//            if ( pep != null )
+//                delete pep;
+//        }
 
         private void onContextIdCreateIndicationReceived( GIsi.Message msg )
         {
