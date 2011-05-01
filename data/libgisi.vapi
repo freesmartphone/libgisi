@@ -1883,6 +1883,12 @@ namespace GIsiClient
     {
         private GPDS();
 
+        [CCode (cprefix = "PN_", has_type_id = false, cheader_filename = "gpds.h")]
+        public const uchar PEP_TYPE_GPRS;
+
+        [CCode (cprefix = "PN_", has_type_id = false, cheader_filename = "gpds.h")]
+        public const uchar WRAN;
+
         [CCode (cname = "guint8", cprefix = "GPDS_", has_type_id = false, cheader_filename = "gpds.h")]
         public enum MessageType
         {
@@ -1979,10 +1985,6 @@ namespace GIsiClient
 	        CHALLENGE_INFO,
 	        DNS_ADDRESS_REQ_INFO,
         }
-
-        [CCode (cname = "guint8", cprefix = "PN_", has_type_id = false, cheader_filename = "gpds.h")]
-        public const uint8 PEP_TYPE_GPRS;
-        public const uint8 WRAN;
 
         [CCode (cname = "guint8", cprefix = "GPDS_", has_type_id = false, cheader_filename = "gpds.h")]
         public enum Status
