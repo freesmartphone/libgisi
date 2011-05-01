@@ -248,7 +248,7 @@ namespace GIsiComm
     public abstract class AbstractBaseClient
     {
         public bool reachable;
-        public uint16 obj;
+        public uint16 isiobj;
         protected unowned GIsi.Client client;
 
         public SourceFunc cb;
@@ -276,7 +276,7 @@ namespace GIsiComm
             else
             {
                 reachable = true;
-                //obj = msg.object();
+                isiobj = msg.object;
                 onSubsystemIsReachable();
             }
             cb();
