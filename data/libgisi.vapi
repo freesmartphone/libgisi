@@ -530,7 +530,6 @@ namespace GIsi
         MTC,
         NETWORK,
         PHONE_INFO,
-        PEP_TYPE_GPRS,
         SIM,
         SIM_AUTH,
         SMS,
@@ -1980,6 +1979,10 @@ namespace GIsiClient
 	        CHALLENGE_INFO,
 	        DNS_ADDRESS_REQ_INFO,
         }
+
+        [CCode (cname = "guint8", cprefix = "PN_", has_type_id = false, cheader_filename = "gpds.h")]
+        public const uint8 PEP_TYPE_GPRS;
+        public const uint8 WRAN;
 
         [CCode (cname = "guint8", cprefix = "GPDS_", has_type_id = false, cheader_filename = "gpds.h")]
         public enum Status
