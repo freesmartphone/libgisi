@@ -72,11 +72,11 @@ namespace GIsi
 
         // ???
         [CCode (cname = "g_isi_client_vsend")]
-        public bool vsend( uint8[] iov, owned GIsi.NotifyFunc notify );
+        public bool vsend( Posix.iovector iov, size_t iov_len, owned GIsi.NotifyFunc notify );
 
         // ???
         [CCode (cname = "g_isi_client_vsend_with_timeout")]
-        public bool vsend_with_timeout( uint8[] iov, uint timeout, owned GIsi.NotifyFunc notify );
+        public bool vsend_with_timeout( Posix.iovector iov, size_t iov_len, uint timeout, owned GIsi.NotifyFunc notify );
 
     }
 
@@ -376,7 +376,7 @@ namespace GIsi
 
         // ???
         [CCode (cname = "g_isi_server_vsend")]
-        public bool vsend( GIsi.Message req, uint8[] iov );
+        public bool vsend( GIsi.Message req, Posix.iovector iov, size_t iov_len );
 
         [CCode (cname = "g_isi_server_handle")]
         public GIsi.Pending handle( uchar type, GIsi.NotifyFunc notify );
