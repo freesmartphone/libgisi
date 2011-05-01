@@ -1628,14 +1628,15 @@ namespace GIsiComm
     public class GPDS : AbstractBaseClient
     {
         private GIsiClient.GPDS ll;
-        //private GIsi.Modem modem;
-        //private GIsi.PEP pep;
-        //private GIsi.Pipe pipe;
+        private unowned GIsi.PEP pep;
+        private unowned GIsi.Pipe pipe;
+        private uint8 ctxid;
 
-        public GPDS( GIsi.Modem _modem )
+        public GPDS( GIsi.Modem modem )
         {
-            //modem = _modem;
-            client = ll = _modem.gpds_client_create();
+            client = ll = modem.gpds_client_create();
+            pep = GIsi.PEP.create( modem, ( pep ) => { yield; }, null );
+            pipe = GIsi.Pipe.create( modem, ( pipe ) => { yield; }, pep.get_object(), isiobj, 0x04, 0x04 );
         }
 
         protected override void onSubsystemIsReachable()
@@ -1664,77 +1665,152 @@ namespace GIsiComm
             //ll.ind_subscribe( GIsiClient.GPDS.MessageType.MBMS_SERVICE_AVAILABLE_IND, onMbmsServiceAvailableIndicationReceived );
         }
 
-//        public void activate( VoidResultFunc cb )
-//        {
-//            reset_context();
-//
-//            pep = GIsi.pep.create( modem, ( pep ) => {
-//                if ( pep == null )
-//                {
-//                    cb( ErrorCode.INVALID_FORMAT );
-//                    return;
-//                }
-//            } );
-//
-//            pipe = GIsi.Pipe.create( modem, ( pipe ) => {
-//                if ( pipe == null )
-//                {
-//                    cb( ErrorCode.INVALID_FORMAT );
-//                    return;
-//                }
-//            }, pep.get_object(), obj, GIsi.PEP.Type.GPRS, GIsi.PEP.Type.GPRS );
-//
-//            var req = new uint8[] { GIsiClient.GPDS.MessageType.CONTEXT_ID_CREATE_REQ };
-//            ll.send( req, ( msg ) => {
-//                if ( !msg.ok() )
-//                {
-//                    cb( ErrorCode.INVALID_FORMAT );
-//                    reset_context();
-//                    return;
-//                }
-//                ctxid = msg.data[0];
-//            } );
-//
-//            var req = new uint8[] {
-//                    GIsiClient.GPDS.MessageType.LL_CONFIGURE_REQ,
-//                    ctxid, pipe.get_handle(), LL_PLAIN 
-//            };
-//            ll.send( req, ( msg ) => {
-//                if ( !msg.ok() )
-//                {
-//                }
-//            } );
-//
-//        }
-//
-//        public void deactivate()
-//        {
-//            var req = new uint8[] {
-//                    GIsiClient.GPDS.MessageType.CONTEXT_DEACTIVATE_REQ,
-//                    contextid
-//            };
-//            
-//            ll.send( req, ( msg ) => {
-//                if ( !msg.ok() )
-//                {
-//                    cb( ErrorCode.INVALID_FORMAT );
-//                    return;
-//                }
-//
-//                cb( ErrorCode.OK );
-//            } );
-//
-//            reset_context();
-//        }
-//
-//        private void reset_context()
-//        {
-//            if ( pipe != null )
-//                delete pipe;
-//
-//            if ( pep != null )
-//                delete pep;
-//        }
+        public void activate( string apn, string? user, string? pw, VoidResultFunc cb )
+        {
+            if ( pep == null || pipe == null )
+            {
+                cb( ErrorCode.INVALID_FORMAT );
+                return;
+            }
+
+            var req1 = new uint8[] { GIsiClient.GPDS.MessageType.CONTEXT_ID_CREATE_REQ };
+            ll.send( req1, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( ErrorCode.INVALID_FORMAT );
+                    return;
+                }
+                ctxid = msg.data[0];
+            } );
+
+            var req2 = new uint8[] {
+                    GIsiClient.GPDS.MessageType.LL_CONFIGURE_REQ,
+                    ctxid, pipe.get_handle(), GIsiClient.GPDS.PppMode.PLAIN 
+            };
+            ll.send( req2, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( ErrorCode.INVALID_FORMAT );
+                    return;
+                }
+            } );
+
+            uint8 sb_apn_info_len = align4( 3 + apn.length );
+            uint8 apn_pad_len = sb_apn_info_len - ( 3 + apn.length );
+
+            var pad = new uint8[] { 0x00, 0x00, 0x00, 0x00 };
+
+            var req3 = new uint8[] {
+                GIsiClient.GPDS.MessageType.CONTEXT_CONFIGURE_REQ,
+                ctxid,
+                GIsiClient.GPDS.PdpType.IPV4,
+                GIsiClient.GPDS.ContextType.NORMAL,
+                ctxid,
+                0x00,		/* filler */
+                2,		/* sub blocks */
+                GIsiClient.GPDS.SubblockType.DNS_ADDRESS_REQ_INFO,
+                4,		/* subblock length */
+                0, 0,		/* padding */
+                GIsiClient.GPDS.SubblockType.APN_INFO,
+                sb_apn_info_len,
+                (uint8) apn.length
+                /* Possible padding goes here */
+            };
+
+            Posix.iovector[] iov = new Posix.iovector[3];
+            iov[0] = { req3, req3.length };
+            iov[1] = { apn, apn.length };
+            iov[2] = { pad, apn_pad_len };
+
+            ll.vsend( iov[0], 3, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( ErrorCode.INVALID_FORMAT );
+                    return;
+                }
+            } );
+
+            if ( user != null && pw != null )
+            {
+                /* Pad the fields to the next 32bit boundary */
+                uint8 sb_userinfo_len = align4( 3 + user.length );
+                uint8 userinfo_pad_len = sb_userinfo_len - ( 3 + user.length );
+                uint8 sb_password_info_len = align4( 3 + pw.length );
+                uint8 password_pad_len = sb_password_info_len - ( 3 + pw.length );
+
+                var top = new uint8[] {
+                    GIsiClient.GPDS.MessageType.CONTEXT_AUTH_REQ,
+                    ctxid,
+                    2,	/* sub blocks */
+                    GIsiClient.GPDS.SubblockType.USER_NAME_INFO,
+                    sb_userinfo_len,
+                    (uint8) user.length
+                    /* Username goes here */
+                    /* Possible padding goes here */
+                };
+
+                var bottom = new uint8[] {
+                    GIsiClient.GPDS.SubblockType.PASSWORD_INFO,
+                    sb_password_info_len,
+                    (uint8) pw.length
+                    /* Password goes here */
+                    /* Possible padding goes here */
+                };
+
+                Posix.iovector[] iov2 = new Posix.iovector[6];
+                iov2[0] = { top, top.length };
+                iov2[1] = { user, user.length };
+                iov2[2] = { pad, userinfo_pad_len };
+                iov2[3] = { bottom, bottom.length };
+                iov2[4] = { pw, pw.length };
+                iov2[5] = { pad, password_pad_len };
+
+                ll.vsend( iov2[0], 6, ( msg ) => {
+                    if ( !msg.ok() )
+                    {
+                        cb( ErrorCode.INVALID_FORMAT );
+                        return;
+                    }
+                } );
+            }
+
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ACTIVATE_IND, onContextActivateIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_DEACTIVATE_IND, onContextDeactivateIndicationReceived );
+
+            var req4 = new uint8[] {
+                GIsiClient.GPDS.MessageType.CONTEXT_ACTIVATE_REQ,
+                ctxid, 0
+            };
+
+            ll.send( req4, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    cb( ErrorCode.INVALID_FORMAT );
+                    return;
+                }
+            } );
+
+            pipe.start();
+            
+        }
+
+        public void deactivate()
+        {
+            var req = new uint8[] {
+                    GIsiClient.GPDS.MessageType.CONTEXT_DEACTIVATE_REQ,
+                    ctxid
+            };
+            
+            ll.send( req, ( msg ) => {
+                if ( !msg.ok() )
+                {
+                    //cb( ErrorCode.INVALID_FORMAT );
+                    return;
+                }
+
+                //cb( ErrorCode.OK );
+            } );
+        }
 
         private void onContextIdCreateIndicationReceived( GIsi.Message msg )
         {
