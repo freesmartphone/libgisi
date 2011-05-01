@@ -299,6 +299,12 @@ namespace GIsiComm
                 cb( ErrorCode.OK, msg.data );
             } );
         }
+
+        public uint8 align4( uint8 size )
+        {
+            return (((size) + 3) & ~3);
+        }
+
     }
 
     private void checked( bool predicate ) throws GLib.Error
