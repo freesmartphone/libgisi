@@ -293,7 +293,7 @@ namespace GIsiComm
             client.send( req, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( (ErrorCode) msg.error, null );
+                    cb( ErrorCode.INVALID_FORMAT, null );
                     return;
                 }
                 cb( ErrorCode.OK, msg.data );
