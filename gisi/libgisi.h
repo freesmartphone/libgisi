@@ -4,4 +4,6 @@
 #include <gisi/netlink.h>
 #include <gisi/phonet.h>
 #include <gisi/iter.h>
+#include <gisi/pep.h>
+#include <gisi/pipe.h>
 
