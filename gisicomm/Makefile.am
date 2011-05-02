@@ -14,10 +14,12 @@ AM_CPPFLAGS = \
 VALAC_ARGS = \
 	--basedir $(top_srcdir) \
 	--vapidir $(top_srcdir)/data \
+	--vapidir $(top_srcdir)/vapi \
 	--pkg glib-2.0 \
 	--pkg gio-2.0 \
 	--pkg libgisi \
 	--pkg posix \
+	--pkg posix-ext \
 	--header gisicomm.h \
 	--library gisicomm-0.0
 
