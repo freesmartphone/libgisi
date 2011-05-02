@@ -1632,19 +1632,18 @@ namespace GIsiComm
         private unowned GIsi.Pipe pipe;
         private uint8 ctxid;
 
+        public signal void contextActivated( string iface, string ip, string dns1, string dns2 );
+        public signal void contextDeactivated();
+
         public GPDS( GIsi.Modem modem )
         {
             client = ll = modem.gpds_client_create();
-            pep = GIsi.PEP.create( modem, ( pep ) => { yield; }, null );
-            pipe = GIsi.Pipe.create( modem, ( pipe ) => { yield; }, pep.get_object(), isiobj, 0x04, 0x04 );
         }
 
         protected override void onSubsystemIsReachable()
         {
             ll.ind_subscribe( GIsiClient.GPDS.MessageType.DETACH_IND, onDetachIndicationReceived );
             ll.ind_subscribe( GIsiClient.GPDS.MessageType.TRANSFER_STATUS_IND, onTransferStatusIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ACTIVATE_IND, onContextActivateIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_DEACTIVATE_IND, onContextDeactivateIndicationReceived );
 
             //ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ID_CREATE_IND, onContextIdCreateIndicationReceived );
             //ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ID_DELETE_IND, onContextIdDeleteIndicationReceived );
@@ -1667,11 +1666,20 @@ namespace GIsiComm
 
         public void activate( string apn, string? user, string? pw, VoidResultFunc cb )
         {
-            if ( pep == null || pipe == null )
+            pep = GIsi.PEP.create( ll.modem, ( pep ) => { yield; }, null );
+            if ( pep == null )
             {
+                warning( "failed to create PEP" );
                 cb( ErrorCode.INVALID_FORMAT );
                 return;
             }
+
+            pipe = GIsi.Pipe.create( ll.modem, ( pipe ) => { yield; }, pep.get_object(), isiobj, 0x04, 0x04 );
+            //if ( pep == null || pipe == null )
+            //{
+            //    cb( ErrorCode.INVALID_FORMAT );
+            //    return;
+            //}
 
             var req1 = new uint8[] { GIsiClient.GPDS.MessageType.CONTEXT_ID_CREATE_REQ };
             ll.send( req1, ( msg ) => {
