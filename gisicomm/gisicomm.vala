@@ -1853,12 +1853,12 @@ namespace GIsiComm
 
                         if ( addr_length == 4 )
                         {
-                            uint8[Posix.INET_ADDRSTRLEN] dst = null;
+                            var dst = new uint8[Posix.INET_ADDRSTRLEN];
                             ip_addr = Posix.inet_ntop( Posix.AF_INET, addr_value, dst );
                         }
                         else if ( addr_length == 16 )
                         {
-                            uint8[Posix.INET6_ADDRSTRLEN] dst = null;
+                            var dst = new uint8[Posix.INET6_ADDRSTRLEN];
                             ip_addr = Posix.inet_ntop( Posix.AF_INET6, addr_value, dst );
                         }
                         break;
@@ -1886,12 +1886,12 @@ namespace GIsiComm
 
                         if ( addr_length == 4 )
                         {
-                            uint8[Posix.INET_ADDRSTRLEN] dst = null;
+                            var dst = new uint8[Posix.INET_ADDRSTRLEN];
                             dns[dns_count++] = Posix.inet_ntop( Posix.AF_INET, addr_value, dst );
                         }
                         else if ( addr_length == 16 )
                         {
-                            uint8[Posix.INET6_ADDRSTRLEN] dst = null;
+                            var dst = new uint8[Posix.INET6_ADDRSTRLEN];
                             dns[dns_count++] = Posix.inet_ntop( Posix.AF_INET6, addr_value, dst );
                         }
                         break;
