@@ -1820,22 +1820,104 @@ namespace GIsiComm
             } );
         }
 
+        private void onContextActivateIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
+
+            string ip_addr = null;
+            string dns[5];
+            uint8 dns_count = 0;
+
+            for ( GIsi.SubBlockIter sbi = msg.subblock_iter_create( 2 ); sbi.is_valid(); sbi.next() )
+            {
+                message( @"Have subblock with ID $(sbi.id), length $(sbi.length)" );
+
+                uint8 addr_length = 0;
+                void *addr_value = null;
+
+                switch ( sbi.id )
+                {
+                    case GIsiClient.GPDS.SubblockType.PDP_ADDRESS_INFO:
+                        if ( !sbi.get_byte( out addr_length, 3 ) )
+                        {
+                            warning( @"Failed to get length of address from subblock with ID $(sbi.id)" );
+                            continue;
+                        }
+                        debug( @"addr_length = $addr_length" );
+
+                        if ( !sbi.get_data( out addr_value, 4 ) )
+                        {
+                            warning( @"Failed to get data of address from subblock with ID $(sbi.id)" );
+                            continue;
+                        }
+
+                        if ( addr_length == 4 )
+                        {
+                            uint8[Posix.INET_ADDRSTRLEN] dst = null;
+                            ip_addr = Posix.inet_ntop( Posix.AF_INET, addr_value, dst );
+                        }
+                        else if ( addr_length == 16 )
+                        {
+                            uint8[Posix.INET6_ADDRSTRLEN] dst = null;
+                            ip_addr = Posix.inet_ntop( Posix.AF_INET6, addr_value, dst );
+                        }
+                        break;
+
+                    case GIsiClient.GPDS.SubblockType.PDNS_ADDRESS_INFO:
+                    case GIsiClient.GPDS.SubblockType.SDNS_ADDRESS_INFO:
+                        if ( dns_count > 4 )
+                        {
+                            warning( "Ignoring additional dns server (max of 5 allowed" );
+                            continue;
+                        }
+
+                        if ( !sbi.get_byte( out addr_length, 3 ) )
+                        {
+                            warning( @"Failed to get length of address from subblock with ID $(sbi.id)" );
+                            continue;
+                        }
+                        debug( @"addr_length = $addr_length" );
+
+                        if ( !sbi.get_data( out addr_value, 4 ) )
+                        {
+                            warning( @"Failed to get data of address from subblock with ID $(sbi.id)" );
+                            continue;
+                        }
+
+                        if ( addr_length == 4 )
+                        {
+                            uint8[Posix.INET_ADDRSTRLEN] dst = null;
+                            dns[dns_count++] = Posix.inet_ntop( Posix.AF_INET, addr_value, dst );
+                        }
+                        else if ( addr_length == 16 )
+                        {
+                            uint8[Posix.INET6_ADDRSTRLEN] dst = null;
+                            dns[dns_count++] = Posix.inet_ntop( Posix.AF_INET6, addr_value, dst );
+                        }
+                        break;
+
+                    default:
+                        message( @"FIXME: handle unknown subblock with ID $(sbi.id)" );
+                        break;
+                }
+            }
+
+            //uint8[Posix.IF_NAMESIZE] iface = null;
+            this.contextActivated( "gprs0", ip_addr, dns[0], dns[1] );
+        }
+
+        private void onContextDeactivateIndicationReceived( GIsi.Message msg )                         
+        {
+            message( @"$msg received" );
+            this.contextDeactivated();
+        }
+
         private void onContextIdCreateIndicationReceived( GIsi.Message msg )
         {
             message( @"$msg received" );
         }
 
         private void onContextIdDeleteIndicationReceived( GIsi.Message msg )
-        {
-            message( @"$msg received" );
-        }
-
-        private void onContextActivateIndicationReceived( GIsi.Message msg )
-        {
-            message( @"$msg received" );
-        }
-
-        private void onContextDeactivateIndicationReceived( GIsi.Message msg )                         
         {
             message( @"$msg received" );
         }
