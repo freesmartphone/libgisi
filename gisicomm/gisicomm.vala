@@ -1664,9 +1664,10 @@ namespace GIsiComm
             //ll.ind_subscribe( GIsiClient.GPDS.MessageType.MBMS_SERVICE_AVAILABLE_IND, onMbmsServiceAvailableIndicationReceived );
         }
 
-        public void activate( string apn, string? user, string? pw, VoidResultFunc cb )
+        public async void activate( string apn, string? user, string? pw, VoidResultFunc cb )
         {
-            pep = GIsi.PEP.create( ll.modem, ( pep ) => { yield; }, null );
+            pep = GIsi.PEP.create( ll.modem, ( pep ) => { activate.callback(); }, null );
+	    yield;
             if ( pep == null )
             {
                 warning( "failed to create PEP" );
@@ -1674,7 +1675,8 @@ namespace GIsiComm
                 return;
             }
 
-            pipe = GIsi.Pipe.create( ll.modem, ( pipe ) => { yield; }, pep.get_object(), isiobj, 0x04, 0x04 );
+            pipe = GIsi.Pipe.create( ll.modem, ( pipe ) => { activate.callback(); }, pep.get_object(), isiobj, 0x04, 0x04 );
+	    yield;
             if ( pipe == null )
             {
                 warning( "failed to create Pipe" );
