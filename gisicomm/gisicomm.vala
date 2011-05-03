@@ -1675,11 +1675,12 @@ namespace GIsiComm
             }
 
             pipe = GIsi.Pipe.create( ll.modem, ( pipe ) => { yield; }, pep.get_object(), isiobj, 0x04, 0x04 );
-            //if ( pep == null || pipe == null )
-            //{
-            //    cb( ErrorCode.INVALID_FORMAT );
-            //    return;
-            //}
+            if ( pipe == null )
+            {
+                warning( "failed to create Pipe" );
+                cb( ErrorCode.INVALID_FORMAT );
+                return;
+            }
 
             var req1 = new uint8[] { GIsiClient.GPDS.MessageType.CONTEXT_ID_CREATE_REQ };
             ll.send( req1, ( msg ) => {
