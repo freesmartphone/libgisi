@@ -291,7 +291,7 @@ namespace GIsi
     public class PEP
     {
         [CCode (cname = "g_isi_pep_create")]
-        public static unowned GIsi.PEP create (GIsi.Modem modem, GIsi.PEPCallback cb, void* data);
+        public static unowned GIsi.PEP create( GIsi.Modem modem, GIsi.PEPCallback cb );
         [CCode (cname = "g_isi_pep_get_ifindex")]
         public uint get_ifindex ();
         [CCode (cname = "g_isi_pep_get_ifname")]
@@ -547,8 +547,8 @@ namespace GIsi
     [CCode (cheader_filename = "libgisi.h", has_target = true)]
     public delegate void NotifyFunc (GIsi.Message msg);
 
-    [CCode (cheader_filename = "libgisi.h", has_target = false)]
-    public delegate void PEPCallback (GIsi.PEP pep, void* opaque);
+    [CCode (cheader_filename = "libgisi.h", has_target = true)]
+    public delegate void PEPCallback( GIsi.PEP pep );
 
     [CCode (cheader_filename = "libgisi.h", has_target = true)]
     public delegate void PhonetNetlinkFunc (GIsi.Modem modem, GIsi.PhonetLinkState st, string iface);
@@ -2215,7 +2215,7 @@ namespace GIsiServer
             PP,
             MCUSW_VERSION,
         }
-            
+
     }
 
 } /* namespace GIsiServer */
