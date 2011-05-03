@@ -1666,8 +1666,7 @@ namespace GIsiComm
 
         public async void activate( string apn, string? user, string? pw, VoidResultFunc cb )
         {
-            pep = GIsi.PEP.create( ll.modem, ( pep ) => { activate.callback(); }, null );
-	    yield;
+            pep = GIsi.PEP.create( ll.modem, ( p ) => { } );
             if ( pep == null )
             {
                 warning( "failed to create PEP" );
@@ -1675,8 +1674,7 @@ namespace GIsiComm
                 return;
             }
 
-            pipe = GIsi.Pipe.create( ll.modem, ( pipe ) => { activate.callback(); }, pep.get_object(), isiobj, 0x04, 0x04 );
-	    yield;
+            pipe = GIsi.Pipe.create( ll.modem, ( p ) => { }, pep.get_object(), isiobj, 0x04, 0x04 );
             if ( pipe == null )
             {
                 warning( "failed to create Pipe" );
@@ -1696,7 +1694,7 @@ namespace GIsiComm
 
             var req2 = new uint8[] {
                     GIsiClient.GPDS.MessageType.LL_CONFIGURE_REQ,
-                    ctxid, pipe.get_handle(), GIsiClient.GPDS.PppMode.PLAIN 
+                    ctxid, pipe.get_handle(), GIsiClient.GPDS.PppMode.PLAIN
             };
             ll.send( req2, ( msg ) => {
                 if ( !msg.ok() )
@@ -1802,7 +1800,7 @@ namespace GIsiComm
             } );
 
             pipe.start();
-            
+
         }
 
         public void deactivate()
@@ -1811,7 +1809,7 @@ namespace GIsiComm
                     GIsiClient.GPDS.MessageType.CONTEXT_DEACTIVATE_REQ,
                     ctxid
             };
-            
+
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
                 {
@@ -1909,7 +1907,7 @@ namespace GIsiComm
             this.contextActivated( "gprs0", ip_addr, dns[0], dns[1] );
         }
 
-        private void onContextDeactivateIndicationReceived( GIsi.Message msg )                         
+        private void onContextDeactivateIndicationReceived( GIsi.Message msg )
         {
             message( @"$msg received" );
             this.contextDeactivated();
