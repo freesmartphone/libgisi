@@ -291,7 +291,7 @@ namespace GIsi
     public class PEP
     {
         [CCode (cname = "g_isi_pep_create")]
-        public static unowned GIsi.PEP create( GIsi.Modem modem, GIsi.PEPCallback cb );
+        public static GIsi.PEP create( GIsi.Modem modem, GIsi.PEPCallback cb );
         [CCode (cname = "g_isi_pep_get_ifindex")]
         public uint get_ifindex ();
         [CCode (cname = "g_isi_pep_get_ifname")]
@@ -338,7 +338,7 @@ namespace GIsi
     public class Pipe
     {
         [CCode (cname = "g_isi_pipe_create")]
-        public static unowned GIsi.Pipe create (GIsi.Modem modem, GIsi.PipeHandler cb, uint16 obj1, uint16 obj2, uchar type1, uchar type2);
+        public static GIsi.Pipe create (GIsi.Modem modem, GIsi.PipeHandler cb, uint16 obj1, uint16 obj2, uchar type1, uchar type2);
         [CCode (cname = "g_isi_pipe_get_error")]
         public int get_error ();
         [CCode (cname = "g_isi_pipe_get_handle")]

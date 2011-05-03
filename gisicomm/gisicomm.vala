@@ -1628,8 +1628,8 @@ namespace GIsiComm
     public class GPDS : AbstractBaseClient
     {
         private GIsiClient.GPDS ll;
-        private unowned GIsi.PEP pep;
-        private unowned GIsi.Pipe pipe;
+        private GIsi.PEP pep;
+        private GIsi.Pipe pipe;
         private uint8 ctxid;
 
         public signal void contextActivated( string iface, string ip, string dns1, string dns2 );
@@ -1803,7 +1803,7 @@ namespace GIsiComm
 
         }
 
-        public void deactivate()
+        public async void deactivate()
         {
             var req = new uint8[] {
                     GIsiClient.GPDS.MessageType.CONTEXT_DEACTIVATE_REQ,
@@ -1814,11 +1814,18 @@ namespace GIsiComm
                 if ( !msg.ok() )
                 {
                     //cb( ErrorCode.INVALID_FORMAT );
+                    deactivate.callback();
                     return;
                 }
 
                 //cb( ErrorCode.OK );
+                deactivate.callback();
             } );
+
+            yield;
+
+            pipe = null;
+            pep = null;
         }
 
         private void onContextActivateIndicationReceived( GIsi.Message msg )
