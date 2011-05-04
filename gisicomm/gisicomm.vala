@@ -1645,6 +1645,9 @@ namespace GIsiComm
             ll.ind_subscribe( GIsiClient.GPDS.MessageType.DETACH_IND, onDetachIndicationReceived );
             ll.ind_subscribe( GIsiClient.GPDS.MessageType.TRANSFER_STATUS_IND, onTransferStatusIndicationReceived );
 
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ACTIVATE_IND, onContextActivateIndicationReceived );
+            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_DEACTIVATE_IND, onContextDeactivateIndicationReceived );
+
             //ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ID_CREATE_IND, onContextIdCreateIndicationReceived );
             //ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ID_DELETE_IND, onContextIdDeleteIndicationReceived );
             //ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_MWI_ACT_REQUEST_IND, onContextMwiActRequestIndicationReceived );
@@ -1816,9 +1819,6 @@ namespace GIsiComm
             {
                 return;
             }
-
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ACTIVATE_IND, onContextActivateIndicationReceived );
-            ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_DEACTIVATE_IND, onContextDeactivateIndicationReceived );
 
             var req4 = new uint8[] {
                 GIsiClient.GPDS.MessageType.CONTEXT_ACTIVATE_REQ,
