@@ -283,7 +283,7 @@ namespace GIsi
     /**
      * @class PEP
      *
-     * ???
+     * Packet Data Communication Pipe End Point (?)
      **/
 
     [Compact]
@@ -293,11 +293,11 @@ namespace GIsi
         [CCode (cname = "g_isi_pep_create")]
         public static GIsi.PEP create( GIsi.Modem modem, GIsi.PEPCallback cb );
         [CCode (cname = "g_isi_pep_get_ifindex")]
-        public uint get_ifindex ();
+        public uint get_ifindex();
         [CCode (cname = "g_isi_pep_get_ifname")]
-        public unowned string get_ifname (string ifname);
+        public unowned string get_ifname( string ifname );
         [CCode (cname = "g_isi_pep_get_object")]
-        public uint16 get_object ();
+        public uint16 get_object();
     }
 
     /**
@@ -331,32 +331,32 @@ namespace GIsi
     /**
      * @class Pipe
      *
-     * ???
+     * Packet Data Communication Pipe
      **/
     [Compact]
     [CCode (free_function = "g_isi_pipe_destroy", cheader_filename = "libgisi.h")]
     public class Pipe
     {
         [CCode (cname = "g_isi_pipe_create")]
-        public static GIsi.Pipe create (GIsi.Modem modem, GIsi.PipeHandler cb, uint16 obj1, uint16 obj2, uchar type1, uchar type2);
+        public static GIsi.Pipe create( GIsi.Modem modem, GIsi.PipeHandler cb, uint16 obj1, uint16 obj2, uchar type1, uchar type2 );
         [CCode (cname = "g_isi_pipe_get_error")]
-        public int get_error ();
+        public int get_error();
         [CCode (cname = "g_isi_pipe_get_handle")]
-        public uchar get_handle ();
+        public uchar get_handle();
         [CCode (cname = "g_isi_pipe_get_userdata")]
-        public void* get_userdata ();
+        public void* get_userdata();
         [CCode (cname = "g_isi_pipe_set_error_handler")]
-        public void set_error_handler (GIsi.PipeErrorHandler cb);
+        public void set_error_handler( GIsi.PipeErrorHandler cb );
         [CCode (cname = "g_isi_pipe_set_userdata")]
-        public void* set_userdata (void* data);
+        public void* set_userdata( void* data );
         [CCode (cname = "g_isi_pipe_start")]
-        public int start ();
+        public int start();
     }
 
     /**
      * @class Server
      *
-     * ???
+     * Communication Server for answering questions from the Modem
      **/
     [Compact]
     [CCode (free_function = "g_isi_server_destroy", cheader_filename = "libgisi.h")]
@@ -374,10 +374,11 @@ namespace GIsi
         [CCode (cname = "g_isi_server_send")]
         public bool send( GIsi.Message req, uint8[] msg );
 
-        // ???
+        // send a vector of data
         [CCode (cname = "g_isi_server_vsend")]
         public bool vsend( GIsi.Message req, Posix.iovector iov, size_t iov_len );
 
+        // claim to handle a message of a certain type
         [CCode (cname = "g_isi_server_handle")]
         public GIsi.Pending handle( uchar type, GIsi.NotifyFunc notify );
 
