@@ -1596,7 +1596,7 @@ namespace GIsiComm
     /**
      * @class SS
      *
-     * General Stack Server
+     * Stack Server
      **/
 
     public class SS : AbstractBaseClient
@@ -1625,6 +1625,23 @@ namespace GIsiComm
         }
     }
 
+    public class GPDSHelper
+    {
+        public GPDS instance;
+        public SourceFunc cb;
+
+        public GPDSHelper( GPDS instance, SourceFunc cb )
+        {
+            this.instance = instance;
+            this.cb = cb;
+        }
+    }
+
+    /**
+     * @class GSS
+     *
+     * General Stack Server
+     **/
     public class GPDS : AbstractBaseClient
     {
         private GIsiClient.GPDS ll;
@@ -1634,6 +1651,13 @@ namespace GIsiComm
 
         public signal void contextActivated( string iface, string ip, string dns1, string dns2 );
         public signal void contextDeactivated();
+
+        private static void onPipeCreated( GIsi.Pipe p )
+        {
+            debug( "on pipe created" );
+            var helper = (GPDSHelper) p.get_userdata();
+            helper.cb();
+        }
 
         public GPDS( GIsi.Modem modem )
         {
@@ -1677,13 +1701,15 @@ namespace GIsiComm
                 return;
             }
 
-            pipe = GIsi.Pipe.create( ll.modem, ( p ) => { }, pep.get_object(), isiobj, 0x04, 0x04 );
+            pipe = GIsi.Pipe.create( ll.modem, onPipeCreated, pep.get_object(), isiobj, 0x04, 0x04 );
             if ( pipe == null )
             {
                 warning( "failed to create ISI Pipe" );
                 cb( ErrorCode.INVALID_FORMAT );
                 return;
             }
+            pipe.set_userdata( new GPDSHelper( this, activate.callback ) );
+            yield;
 
             bool ok = true;
 
