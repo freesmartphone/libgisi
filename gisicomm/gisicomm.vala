@@ -1753,11 +1753,6 @@ namespace GIsiComm
                 return;
             }
 
-            uint8 sb_apn_info_len = align4( 3 + apn.length );
-            uint8 apn_pad_len = sb_apn_info_len - ( 3 + apn.length );
-
-            var pad = new uint8[] { 0x00, 0x00, 0x00, 0x00 };
-
             var req3 = new uint8[] {
                 GIsiClient.GPDS.MessageType.CONTEXT_CONFIGURE_REQ,
                 ctxid,
@@ -1770,17 +1765,18 @@ namespace GIsiComm
                 4,		/* subblock length */
                 0, 0,		/* padding */
                 GIsiClient.GPDS.SubblockType.APN_INFO,
-                sb_apn_info_len,
-                (uint8) apn.length
-                /* Possible padding goes here */
+                43,
+                (uint8) apn.length,
+                0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+                0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0
             };
 
-            Posix.iovector[] iov = new Posix.iovector[3];
-            iov[0] = { req3, req3.length };
-            iov[1] = { apn, apn.length };
-            iov[2] = { pad, apn_pad_len };
+            for ( int i = 0; i < apn.length; ++i )
+            {
+                req3[14 + i] = apn[i];
+            }
 
-            ll.vsend( iov[0], 3, ( msg ) => {
+            ll.send( req3, ( msg ) => {
                 if ( !msg.ok() )
                 {
                     warning( "could not configure GPRS context" );
@@ -1803,6 +1799,8 @@ namespace GIsiComm
                 uint8 userinfo_pad_len = sb_userinfo_len - ( 3 + user.length );
                 uint8 sb_password_info_len = align4( 3 + pw.length );
                 uint8 password_pad_len = sb_password_info_len - ( 3 + pw.length );
+
+                var pad = new uint8[] { 0x00, 0x00, 0x00, 0x00 };
 
                 var top = new uint8[] {
                     GIsiClient.GPDS.MessageType.CONTEXT_AUTH_REQ,
