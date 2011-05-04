@@ -1873,8 +1873,7 @@ namespace GIsiComm
             message( @"$msg received" );
 
             string ip_addr = null;
-            string dns[5];
-            uint8 dns_count = 0;
+            string[] dns = new string[] {};
 
             for ( GIsi.SubBlockIter sbi = msg.subblock_iter_create( 2 ); sbi.is_valid(); sbi.next() )
             {
@@ -1913,7 +1912,7 @@ namespace GIsiComm
 
                     case GIsiClient.GPDS.SubblockType.PDNS_ADDRESS_INFO:
                     case GIsiClient.GPDS.SubblockType.SDNS_ADDRESS_INFO:
-                        if ( dns_count > 4 )
+                        if ( dns.length == 5 )
                         {
                             warning( "Ignoring additional dns server (max of 5 allowed" );
                             continue;
@@ -1935,12 +1934,12 @@ namespace GIsiComm
                         if ( addr_length == 4 )
                         {
                             var dst = new uint8[Posix.INET_ADDRSTRLEN];
-                            dns[dns_count++] = Posix.inet_ntop( Posix.AF_INET, addr_value, dst );
+                            dns += Posix.inet_ntop( Posix.AF_INET, addr_value, dst );
                         }
                         else if ( addr_length == 16 )
                         {
                             var dst = new uint8[Posix.INET6_ADDRSTRLEN];
-                            dns[dns_count++] = Posix.inet_ntop( Posix.AF_INET6, addr_value, dst );
+                            dns += Posix.inet_ntop( Posix.AF_INET6, addr_value, dst );
                         }
                         break;
 
