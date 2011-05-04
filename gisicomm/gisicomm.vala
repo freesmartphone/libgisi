@@ -1648,6 +1648,7 @@ namespace GIsiComm
         private GIsi.PEP pep;
         private GIsi.Pipe pipe;
         private uint8 ctxid;
+        private GPDSHelper helper;
 
         public signal void contextActivated( string iface, string ip, string dns1, string dns2 );
         public signal void contextDeactivated();
@@ -1708,9 +1709,10 @@ namespace GIsiComm
                 cb( ErrorCode.INVALID_FORMAT );
                 return;
             }
-            pipe.set_userdata( new GPDSHelper( this, activate.callback ) );
+            pipe.set_userdata( helper = new GPDSHelper( this, activate.callback ) );
             yield;
 
+            helper = null;
             bool ok = true;
 
             var req1 = new uint8[] { GIsiClient.GPDS.MessageType.CONTEXT_ID_CREATE_REQ };
