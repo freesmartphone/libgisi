@@ -1669,7 +1669,7 @@ namespace GIsiComm
             pep = GIsi.PEP.create( ll.modem, ( p ) => { } );
             if ( pep == null )
             {
-                warning( "failed to create PEP" );
+                warning( "failed to create ISI PEP" );
                 cb( ErrorCode.INVALID_FORMAT );
                 return;
             }
@@ -1677,20 +1677,30 @@ namespace GIsiComm
             pipe = GIsi.Pipe.create( ll.modem, ( p ) => { }, pep.get_object(), isiobj, 0x04, 0x04 );
             if ( pipe == null )
             {
-                warning( "failed to create Pipe" );
+                warning( "failed to create ISI Pipe" );
                 cb( ErrorCode.INVALID_FORMAT );
                 return;
             }
+
+            bool ok = true;
 
             var req1 = new uint8[] { GIsiClient.GPDS.MessageType.CONTEXT_ID_CREATE_REQ };
             ll.send( req1, ( msg ) => {
                 if ( !msg.ok() )
                 {
+                    warning( "could not create GPRS context ID" );
                     cb( ErrorCode.INVALID_FORMAT );
-                    return;
+                    ok = false;
                 }
                 ctxid = msg.data[0];
+                activate.callback();
             } );
+            yield;
+
+            if ( !ok )
+            {
+                return;
+            }
 
             var req2 = new uint8[] {
                     GIsiClient.GPDS.MessageType.LL_CONFIGURE_REQ,
@@ -1699,10 +1709,18 @@ namespace GIsiComm
             ll.send( req2, ( msg ) => {
                 if ( !msg.ok() )
                 {
+                    warning( "could not configure GPRS PPP mode" );
+                    ok = false;
                     cb( ErrorCode.INVALID_FORMAT );
-                    return;
                 }
+                activate.callback();
             } );
+            yield;
+
+            if ( !ok )
+            {
+                return;
+            }
 
             uint8 sb_apn_info_len = align4( 3 + apn.length );
             uint8 apn_pad_len = sb_apn_info_len - ( 3 + apn.length );
@@ -1734,10 +1752,18 @@ namespace GIsiComm
             ll.vsend( iov[0], 3, ( msg ) => {
                 if ( !msg.ok() )
                 {
+                    warning( "could not configure GPRS context" );
                     cb( ErrorCode.INVALID_FORMAT );
-                    return;
+                    ok = false;
                 }
+                activate.callback();
             } );
+            yield;
+
+            if ( !ok )
+            {
+                return;
+            }
 
             if ( user != null && pw != null )
             {
@@ -1777,10 +1803,18 @@ namespace GIsiComm
                 ll.vsend( iov2[0], 6, ( msg ) => {
                     if ( !msg.ok() )
                     {
+                        warning( "could not configure GPRS user and password" );
                         cb( ErrorCode.INVALID_FORMAT );
-                        return;
+                        ok = false;
                     }
+                    activate.callback();
                 } );
+                yield;
+            }
+
+            if ( !ok )
+            {
+                return;
             }
 
             ll.ind_subscribe( GIsiClient.GPDS.MessageType.CONTEXT_ACTIVATE_IND, onContextActivateIndicationReceived );
@@ -1794,13 +1828,19 @@ namespace GIsiComm
             ll.send( req4, ( msg ) => {
                 if ( !msg.ok() )
                 {
+                    warning( "could not activate context" );
                     cb( ErrorCode.INVALID_FORMAT );
-                    return;
+                    ok = false;
                 }
+                activate.callback();
             } );
+            yield;
 
-            pipe.start();
-
+            if ( ok )
+            {
+                pipe.start();
+                cb( ErrorCode.OK );
+            }
         }
 
         public async void deactivate()
