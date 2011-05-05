@@ -1829,7 +1829,7 @@ namespace GIsiComm
                 iov2[4] = { pw, pw.length };
                 iov2[5] = { pad, password_pad_len };
 
-                ll.vsend( iov2[0], 6, ( msg ) => {
+                ll.vsend( iov2, ( msg ) => {
                     if ( !msg.ok() )
                     {
                         warning( "could not configure GPRS user and password" );

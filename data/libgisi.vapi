@@ -70,13 +70,13 @@ namespace GIsi
         [CCode (cname = "g_isi_client_verify")]
         public bool verify( owned GIsi.NotifyFunc notify );
 
-        // ???
+        // send io vector with default timeout
         [CCode (cname = "g_isi_client_vsend")]
-        public bool vsend( Posix.iovector iov, size_t iov_len, owned GIsi.NotifyFunc notify );
+        public bool vsend( Posix.iovector[] iov, owned GIsi.NotifyFunc notify );
 
-        // ???
+        // send io vector with special timeout
         [CCode (cname = "g_isi_client_vsend_with_timeout")]
-        public bool vsend_with_timeout( Posix.iovector iov, size_t iov_len, uint timeout, owned GIsi.NotifyFunc notify );
+        public bool vsend_with_timeout( Posix.iovector[] iov, uint timeout, owned GIsi.NotifyFunc notify );
 
     }
 
@@ -255,9 +255,9 @@ namespace GIsi
         [CCode (cname = "g_isi_modem_set_userdata")]
         public void* set_userdata (void* data);
         [CCode (cname = "g_isi_modem_vsend")]
-        public int vsend (uchar resource, void* iov, size_t iovlen);
+        public int vsend( uchar resource, Posix.iovector[] iov );
         [CCode (cname = "g_isi_modem_vsendto")]
-        public int vsendto (void* dst, void* iov, size_t iovlen);
+        public int vsendto( void* dst, Posix.iovector[] iov );
 
         //
         // assorted lowlevel request functions
@@ -376,7 +376,7 @@ namespace GIsi
 
         // send a vector of data
         [CCode (cname = "g_isi_server_vsend")]
-        public bool vsend( GIsi.Message req, Posix.iovector iov, size_t iov_len );
+        public bool vsend( GIsi.Message req, Posix.iovector[] iov );
 
         // claim to handle a message of a certain type
         [CCode (cname = "g_isi_server_handle")]
