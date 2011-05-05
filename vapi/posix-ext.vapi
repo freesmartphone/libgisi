@@ -7,3 +7,5 @@ namespace Posix
     const int INET_ADDRSTRLEN;
     const int INET6_ADDRSTRLEN;
 }
+
+// vim:ts=4:sw=4:expandtab

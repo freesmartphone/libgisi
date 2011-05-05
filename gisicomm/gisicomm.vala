@@ -2130,3 +2130,4 @@ namespace GIsiComm
 
 } /* namespace GIsiComm */
 
+// vim:ts=4:sw=4:expandtab

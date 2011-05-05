@@ -165,3 +165,5 @@ void main( string[] args )
     loop.run();
     debug( "<= mainloop" );
 }
+
+// vim:ts=4:sw=4:expandtab

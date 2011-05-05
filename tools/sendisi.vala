@@ -170,3 +170,5 @@ void main( string[] args )
 
     loop.run();
 }
+
+// vim:ts=4:sw=4:expandtab
