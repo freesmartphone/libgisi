@@ -269,15 +269,15 @@ namespace GIsi
         [CCode (cname = "g_isi_request_utid", cheader_filename = "libgisi.h")]
         public uchar request_utid (GIsi.Pending resp);
         [CCode (cname = "g_isi_request_vsend", cheader_filename = "libgisi.h")]
-        public unowned GIsi.Pending request_vsend( uchar resource, uint8[] iov, uint timeout, owned GIsi.NotifyFunc notify );
+        public unowned GIsi.Pending request_vsend( uchar resource, Posix.iovector[] iov, uint timeout, owned GIsi.NotifyFunc notify );
         [CCode (cname = "g_isi_request_vsendto", cheader_filename = "libgisi.h")]
-        public unowned GIsi.Pending request_vsendto( void* dst, uint8[] iov, uint timeout, owned GIsi.NotifyFunc notify );
+        public unowned GIsi.Pending request_vsendto( void* dst, Posix.iovector[] iov, uint timeout, owned GIsi.NotifyFunc notify );
         [CCode (cname = "g_isi_resource_ping", cheader_filename = "libgisi.h")]
         public unowned GIsi.Pending resource_ping( uchar resource, owned GIsi.NotifyFunc notify );
         [CCode (cname = "g_isi_response_send", cheader_filename = "libgisi.h")]
         public int response_send( GIsi.Message req, uint8[] buf );
         [CCode (cname = "g_isi_response_vsend", cheader_filename = "libgisi.h")]
-        public int response_vsend( GIsi.Message req, uint8[] iov );
+        public int response_vsend( GIsi.Message req, Posix.iovector[] iov );
     }
 
     /**
