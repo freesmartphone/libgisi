@@ -201,39 +201,7 @@ namespace GIsiComm
 
         public async bool poweron()
         {
-            var ok = true;
-
-            if ( state != GIsiClient.MTC.ModemState.NORMAL )
-            {
-                debug( "setting state to -normal- (power on, rf on)" );
-
-                mtc.setState( true, true, (error, result) => {
-                    debug( "setting state error %d", error );
-                    if ( error == ErrorCode.OK )
-                    {
-                        ok = ( result == GIsiClient.MTC.IsiCause.OK );
-                    }
-                    poweron.callback();
-                } );
-                yield;
-            }
-            else
-            {
-                return true;
-            }
-
-            var wait = 5;
-            while ( wait-- > 0 && state != GIsiClient.MTC.ModemState.NORMAL )
-            {
-                Timeout.add_seconds( 1, poweron.callback );
-                yield;
-            }
-            if ( wait == 0 && state != GIsiClient.MTC.ModemState.NORMAL )
-            {
-                debug( "no state change within 5 seconds" );
-                return false;
-            }
-
+            // nothing to do here
             return true;
         }
 
