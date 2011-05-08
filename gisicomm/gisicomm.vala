@@ -1938,9 +1938,9 @@ namespace GIsiComm
 
                     case GIsiClient.GPDS.SubblockType.PDNS_ADDRESS_INFO:
                     case GIsiClient.GPDS.SubblockType.SDNS_ADDRESS_INFO:
-                        if ( dns.length == 5 )
+                        if ( dns.length == 2 )
                         {
-                            warning( "Ignoring additional dns server (max of 5 allowed" );
+                            warning( "Ignoring additional dns server" );
                             continue;
                         }
 
@@ -1976,7 +1976,7 @@ namespace GIsiComm
             }
 
             //uint8[Posix.IF_NAMESIZE] iface = null;
-            this.contextActivated( "gprs0", ip_addr, dns[0], dns[1] );
+            this.contextActivated( "gprs0", ip_addr, dns.length > 0 ? dns[0] : "", dns.length > 1 ? dns[1] : "" );
         }
 
         private void onContextDeactivateIndicationReceived( GIsi.Message msg )
