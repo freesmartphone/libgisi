@@ -1260,6 +1260,7 @@ namespace GIsiComm
 
         public struct ISI_CallStatus
         {
+            uint8 id;
             GIsiClient.Call.Status status;
             uint8 ntype;
             string number;
@@ -1332,7 +1333,11 @@ namespace GIsiComm
 
         private ISI_CallStatus parseCallStatus( GIsi.Message msg )
         {
+            uint8 id;
             var status = ISI_CallStatus();
+
+            msg.data_get_byte( 1, out id );
+            status.id = id & 0x07;
 
             for ( GIsi.SubBlockIter sbi = msg.subblock_iter_create( 2 ); sbi.is_valid(); sbi.next() )
             {
