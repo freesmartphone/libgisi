@@ -1305,28 +1305,12 @@ namespace GIsiComm
             RECONNECT_IND,
             */
 
-
-            /*
-            var ok = ll.ind_subscribe( GIsiClient.Call.MessageType.COMING_IND, onComingIndicationReceived );
-            if ( !ok )
-            {
-                warning( "Could not subscribe to CALL_COMING_IND" );
-            }
-            ok = ll.ind_subscribe( GIsiClient.Call.MessageType.MT_ALERT_IND, onMTAlertIndicationReceived );
-            if ( !ok )
-            {
-                warning( "Could not subscribe to CALL_MT_ALERT_IND" );
-            }
-            */
+            /* for now it should suffice if we subscribe only to the
+             * STATUS_IND as it gets sent for all kind of events */
             var ok = ll.ind_subscribe( GIsiClient.Call.MessageType.STATUS_IND, onStatusIndicationReceived );
             if ( !ok )
             {
                 warning( "Could not subscribe to CALL_STATUS_IND" );
-            }
-            ok = ll.ind_subscribe( GIsiClient.Call.MessageType.TERMINATED_IND, onTerminatedIndicationReceived );
-            if ( !ok )
-            {
-                warning( "Could not subscribe to CALL_TERMINATED_IND" );
             }
         }
 
@@ -1336,7 +1320,27 @@ namespace GIsiComm
             var status = ISI_CallStatus();
 
             msg.data_get_byte( 1, out id );
+
+            /* call id's in isi go from 1 to 7 - upper four bits indicate other things:
+             *
+             * CALL_MODEM_ID_NONE                       0x00  -----000
+             * CALL_MODEM_ID_1                          0x01  -----001
+             * CALL_MODEM_ID_2                          0x02  -----010
+             * CALL_MODEM_ID_3                          0x03  -----011
+             * CALL_MODEM_ID_4                          0x04  -----100
+             * CALL_MODEM_ID_5                          0x05  -----101
+             * CALL_MODEM_ID_6                          0x06  -----110
+             * CALL_MODEM_ID_7                          0x07  -----111
+             * CALL_MODEM_ID_CONFERENCE                 0x10  ---1----
+             * CALL_MODEM_ID_WAITING                    0x20  --1-----
+             * CALL_MODEM_ID_HOLD                       0x40  -1------
+             * CALL_MODEM_ID_ACTIVE                     0x80  1-------
+             * CALL_MODEM_ID_ALL                        0xF0  1111----
+             *
+             */
             status.id = id & 0x07;
+
+            debug( @"$(msg.id) for call with id $(status.id)" );
 
             for ( GIsi.SubBlockIter sbi = msg.subblock_iter_create( 2 ); sbi.is_valid(); sbi.next() )
             {
@@ -1376,13 +1380,6 @@ namespace GIsiComm
         {
             message( @"$msg received" );
             this.statusChanged( parseCallStatus( msg ) );
-        }
-
-        private void onTerminatedIndicationReceived( GIsi.Message msg )
-        {
-            message( @"$msg received" );
-            msg.dump();
-            //parseCallStatus( msg );
         }
 
         //
