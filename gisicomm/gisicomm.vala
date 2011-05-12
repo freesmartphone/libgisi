@@ -1389,7 +1389,7 @@ namespace GIsiComm
         // public API
         //
 
-        public void initiateVoiceCall( string number, uint8 ntype, GIsiClient.Call.PresentationType presentation, VoidResultFunc cb )
+        public void initiateVoiceCall( string number, uint8 ntype, GIsiClient.Call.PresentationType presentation, IntResultFunc cb )
         {
             size_t addr_len = number.length;
             size_t sub_len = (6 + 2 * addr_len + 3) & ~3;
@@ -1422,10 +1422,12 @@ namespace GIsiComm
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( ErrorCode.INVALID_FORMAT );
+                    cb( ErrorCode.INVALID_FORMAT, 0 );
                     return;
                 }
-                cb( ErrorCode.OK );
+                uint8 id;
+                msg.data_get_byte( 1, out id );
+                cb( ErrorCode.OK, id );
             } );
         }
 
