@@ -1264,7 +1264,6 @@ namespace GIsiComm
             GIsiClient.Call.Status status;
             uint8 ntype;
             string number;
-            bool incoming;
         }
 
         public signal void statusChanged( ISI_CallStatus status );
