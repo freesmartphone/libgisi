@@ -1316,10 +1316,7 @@ namespace GIsiComm
 
         private ISI_CallStatus parseCallStatus( GIsi.Message msg )
         {
-            uint8 id;
             var status = ISI_CallStatus();
-
-            msg.data_get_byte( 1, out id );
 
             /* call id's in isi go from 1 to 7 - upper four bits indicate other things:
              *
@@ -1338,7 +1335,7 @@ namespace GIsiComm
              * CALL_MODEM_ID_ALL                        0xF0  1111----
              *
              */
-            status.id = id & 0x07;
+            status.id = msg.data[0] & 0x07;
 
             debug( @"$(msg.id) for call with id $(status.id)" );
 
@@ -1422,9 +1419,7 @@ namespace GIsiComm
                     cb( ErrorCode.INVALID_FORMAT, 0 );
                     return;
                 }
-                uint8 id;
-                msg.data_get_byte( 1, out id );
-                cb( ErrorCode.OK, id );
+                cb( ErrorCode.OK, msg.data[0] );
             } );
         }
 
@@ -1454,6 +1449,8 @@ namespace GIsiComm
         public void answerVoiceCall( uint8 callid, VoidResultFunc cb )
         {
             var req = new uchar[] { GIsiClient.Call.MessageType.ANSWER_REQ, callid, 0x0 };
+
+            debug( @"sending ANSWER_REQ for call with id $callid" );
 
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
