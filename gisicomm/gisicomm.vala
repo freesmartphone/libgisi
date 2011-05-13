@@ -60,6 +60,7 @@ namespace GIsiComm
         public GIsiComm.PhoneInfo info;
         public GIsiComm.SIM sim;
         public GIsiComm.Call call;
+        public GIsiComm.SMS sms;
         public GIsiComm.SIMAuth simauth;
         public GIsiComm.Network net;
         public GIsiComm.SS ss;
@@ -170,6 +171,8 @@ namespace GIsiComm
             yield simauth.waitUntilSubsystemIsOnline();
             call = new GIsiComm.Call( m );
             yield call.waitUntilSubsystemIsOnline();
+            sms = new GIsiComm.SMS( m );
+            yield sms.waitUntilSubsystemIsOnline();
             ss = new GIsiComm.SS( m );
             yield ss.waitUntilSubsystemIsOnline();
             gss = new GIsiComm.GSS( m );
@@ -181,7 +184,7 @@ namespace GIsiComm
 
             epoc = new GIsiComm.EpocInfo( m );
 
-            return ( mtc.reachable && info.reachable && sim.reachable && call.reachable && ss.reachable && gss.reachable && net.reachable && gpds.reachable );
+            return ( mtc.reachable && info.reachable && sim.reachable && call.reachable && sms.reachable && ss.reachable && gss.reachable && net.reachable && gpds.reachable );
         }
 
         public async bool startup()
@@ -1561,6 +1564,66 @@ namespace GIsiComm
 
                 cb( ErrorCode.OK );
             } );
+        }
+    }
+
+    /**
+     * @class SMS
+     *
+     * Short Messages Server
+     **/
+
+    public class SMS : AbstractBaseClient
+    {
+        private GIsiClient.SMS ll;
+
+        public SMS( GIsi.Modem modem )
+        {
+            client = ll = modem.sms_client_create();
+        }
+
+        protected override void onSubsystemIsReachable()
+        {
+            var ok = ll.ind_subscribe( GIsiClient.SMS.MessageType.MESSAGE_SEND_STATUS_IND, onSendStatusIndicationReceived );
+            if ( !ok )
+            {
+                warning( "Could not subscribe to MESSAGE_SEND_STATUS_IND" );
+            }
+#if 0
+
+            var req = new uint8[] {
+                GIsiClient.SMS.MessageType.GSM_CB_ROUTING_REQ,
+                GIsiClient.SMS.RoutingCommand.ROUTING_SET,
+                GIsiClient.SMS.RoutingMode.ALL,
+                GIsiClient.SMS.SubjectListType.CB_NOT_ALLOWED_IDS_LIST,
+                0x0 /* subject count */, 
+                0x0 /* language count */, 
+                0x0 /* cb range */
+            };
+
+            ll.send( req, ( msg ) => {
+                if ( !msg.ok )
+                {
+                    warning( "failed to setup CB routing" );
+                }
+                onSubsystemIsReachable.callback();
+            } );
+            yield;
+
+            var req2 = new uint8[] {
+                GIsiClient.SMS.MessageType.PP_ROUTING_REQ,
+                GIsiClient.SMS.RoutingCommand.ROUTING_SET,
+                0x01 /* one subblock */,
+                GIsiClient.SMS.SubblockType.GSM_ROUTING,
+                /* length */
+                /* routing type */
+#endif
+        }
+
+
+        private void onSendStatusIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
         }
     }
 

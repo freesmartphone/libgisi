@@ -215,6 +215,11 @@ namespace GIsi
             return (GIsiClient.Call) new GIsi.Client( this, GIsi.PhonetSubsystem.CALL );
         }
 
+        public GIsiClient.SMS sms_client_create()
+        {
+            return (GIsiClient.SMS) new GIsi.Client( this, GIsi.PhonetSubsystem.SMS );
+        }
+
         public GIsiClient.GSS gss_client_create()
         {
             return (GIsiClient.GSS) new GIsi.Client( this, GIsi.PhonetSubsystem.GSS );
@@ -1700,6 +1705,118 @@ namespace GIsiClient
             ADDR_AND_ORIGIN,
             POC,
             VOIP_ADDR,
+        }
+    }
+
+    /**
+     * @class SMS
+     *
+     * Short Messages Server
+     **/
+    [Compact]
+    [CCode (cname = "GIsiClient", cprefix = "SMS_", free_function = "g_isi_client_destroy", cheader_filename = "libgisi.h,sms.h")]
+    public class SMS : GIsi.Client
+    {
+        private SMS();
+        public const uint TIMEOUT;
+
+        [CCode (cname = "guint8", cprefix = "SMS_", has_type_id = false, cheader_filename = "sms.h")]
+        public enum IsiCause
+        {
+            OK,
+            ERR_ROUTING_RELEASED,
+            ERR_INVALID_PARAMETER,
+            ERR_DEVICE_FAILURE,
+            ERR_PP_RESERVED,
+            ERR_ROUTE_NOT_AVAILABLE,
+            ERR_ROUTE_NOT_ALLOWED,
+            ERR_SERVICE_RESERVED,
+            ERR_INVALID_LOCATION,
+            ERR_NO_SIM,
+            ERR_SIM_NOT_READY,
+            ERR_NO_NETW_RESPONSE,
+            ERR_DEST_ADDR_FDN_RESTRICTED,
+            ERR_SMSC_ADDR_FDN_RESTRICTED,
+            ERR_RESEND_ALREADY_DONE,
+            ERR_SMSC_ADDR_NOT_AVAILABLE,
+            ERR_ROUTING_FAILED,
+            ERR_CS_INACTIVE,
+            ERR_SAT_MO_CONTROL_MODIFIED,
+            ERR_SAT_MO_CONTROL_REJECT,
+            ERR_TRACFONE_FAILED
+        }
+
+        [CCode (cname = "guint8", cprefix = "SMS_", has_type_id = false, cheader_filename = "sms.h")]
+        public enum MessageType
+        {
+            MESSAGE_SEND_REQ,
+            MESSAGE_SEND_RESP,
+            PP_ROUTING_REQ,
+            PP_ROUTING_RESP,
+            PP_ROUTING_NTF,
+            GSM_RECEIVED_PP_REPORT_REQ,
+            GSM_RECEIVED_PP_REPORT_RESP,
+            GSM_CB_ROUTING_REQ,
+            GSM_CB_ROUTING_RESP,
+            GSM_CB_ROUTING_NTF,
+            MESSAGE_SEND_STATUS_IND,
+            COMMON_MESSAGE
+        }
+
+        [CCode (cname = "guint8", cprefix = "SMS_", has_type_id = false, cheader_filename = "sms.h")]
+        public enum SubblockType
+        {
+            GSM_DELIVER,
+            GSM_STATUS_REPORT,
+            GSM_SUBMIT,
+            GSM_COMMAND,
+            GSM_DELIVER_REPORT,
+            GSM_REPORT,
+            GSM_ROUTING,
+            GSM_CB_MESSAGE,
+            GSM_TPDU,
+            COMMON_DATA,
+            ADDRESS
+        }
+
+        [CCode (cname = "guint8", cprefix = "SMS_", has_type_id = false, cheader_filename = "sms.h")]
+        public enum RoutingCommand
+        {
+            ROUTING_RELEASE,
+            ROUTING_SET,
+            ROUTING_SUSPEND,
+            ROUTING_RESUME,
+            ROUTING_UPDATE
+        }
+
+        [CCode (cname = "guint8", cprefix = "SMS_GSM_ROUTING_MODE_", has_type_id = false, cheader_filename = "sms.h")]
+        public enum RoutingMode
+        {
+            ALL,
+            CB_DDL
+        }
+
+        [CCode (cname = "guint8", cprefix = "SMS_GSM_", has_type_id = false, cheader_filename = "sms.h")]
+        public enum RoutingType
+        {
+            TPDU_ROUTING
+        }
+
+        [CCode (cname = "guint8", cprefix = "SMS_", has_type_id = false, cheader_filename = "sms.h")]
+        public enum RoutePreference
+        {
+            ROUTE_GPRS_PREF,
+            ROUTE_CS,
+            ROUTE_GPRS,
+            ROUTE_CS_PREF,
+            ROUTE_DEFAULT
+        }
+
+        [CCode (cname = "guint8", cprefix = "SMS_", has_type_id = false, cheader_filename = "sms.h")]
+        public enum SubjectListType
+        {
+            CB_ALLOWED_IDS_LIST,
+            CB_NOT_ALLOWED_IDS_LIST
         }
     }
 
