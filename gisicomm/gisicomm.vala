@@ -1358,10 +1358,10 @@ namespace GIsiComm
                         break;
 
                     case GIsiClient.Call.SubblockType.ORIGIN_ADDRESS:
+                    case GIsiClient.Call.SubblockType.DESTINATION_ADDRESS:
                         status.ntype = sbi.byte_at_position( 2 ) | 0x80;
-                        uint8 presentation = sbi.byte_at_position( 3 );
                         status.number = sbi.alpha_tag_at_position( sbi.byte_at_position( 5 ) * 2, 6 );
-                        debug( "call origin is type 0x%0X, presentation 0x%0X, number %s", status.ntype, presentation, status.number );
+                        debug( "call peer is type 0x%0X, number %s", status.ntype, status.number );
                         break;
 
                     default:
