@@ -639,6 +639,29 @@ namespace GIsiComm
                 }
             } );
         }
+
+        public async void changePin( string oldpin, string newpin, owned VoidResultFunc cb )
+        {
+            var req = new uchar[] { GIsiClient.SIMAuth.MessageType.UPDATE_REQ, GIsiClient.SIMAuth.IndicationType.PIN,
+                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                            		0x00, 0x00, 0x00, 0x00 };
+
+            uchar* p = req;
+
+            GLib.Memory.copy( p+2, oldpin.data, oldpin.length );
+            GLib.Memory.copy( p+13, newpin.data, newpin.length );
+
+            ll.send_with_timeout( req, GIsiClient.SIMAuth.TIMEOUT, ( msg ) => {
+                if ( !msg.ok() || msg.id != GIsiClient.SIMAuth.MessageType.UPDATE_SUCCESS_RESP )
+                {
+                    cb( ErrorCode.INVALID_FORMAT ); 
+                }
+                cb( ErrorCode.OK );
+                changePin.callback();
+            } );
+            yield;
+        }
     }
 
     /**
