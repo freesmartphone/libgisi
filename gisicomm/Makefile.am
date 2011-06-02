@@ -19,7 +19,6 @@ VALAC_ARGS = \
 	--pkg gio-2.0 \
 	--pkg libgisi \
 	--pkg posix \
-	--pkg posix-ext \
 	--header gisicomm.h \
 	--library gisicomm-0.0
 

@@ -1789,7 +1789,7 @@ namespace GIsiComm
                     /* Possible padding goes here */
                 };
 
-                Posix.iovector[] iov2 = new Posix.iovector[6];
+                var iov2 = new Posix.iovector[6];
                 iov2[0] = { top, top.length };
                 iov2[1] = { user, user.length };
                 iov2[2] = { pad, userinfo_pad_len };
