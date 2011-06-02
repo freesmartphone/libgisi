@@ -60,6 +60,7 @@ namespace GIsiComm
         public GIsiComm.PhoneInfo info;
         public GIsiComm.SIM sim;
         public GIsiComm.Call call;
+        public GIsiComm.SMS sms;
         public GIsiComm.SIMAuth simauth;
         public GIsiComm.Network net;
         public GIsiComm.SS ss;
@@ -170,6 +171,8 @@ namespace GIsiComm
             yield simauth.waitUntilSubsystemIsOnline();
             call = new GIsiComm.Call( m );
             yield call.waitUntilSubsystemIsOnline();
+            sms = new GIsiComm.SMS( m );
+            yield sms.waitUntilSubsystemIsOnline();
             ss = new GIsiComm.SS( m );
             yield ss.waitUntilSubsystemIsOnline();
             gss = new GIsiComm.GSS( m );
@@ -181,7 +184,7 @@ namespace GIsiComm
 
             epoc = new GIsiComm.EpocInfo( m );
 
-            return ( mtc.reachable && info.reachable && sim.reachable && call.reachable && ss.reachable && gss.reachable && net.reachable && gpds.reachable );
+            return ( mtc.reachable && info.reachable && sim.reachable && call.reachable && sms.reachable && ss.reachable && gss.reachable && net.reachable && gpds.reachable );
         }
 
         public async bool startup()
@@ -638,6 +641,29 @@ namespace GIsiComm
                         cb( ErrorCode.INVALID_FORMAT, 0 );
                 }
             } );
+        }
+
+        public async void changePin( string oldpin, string newpin, owned VoidResultFunc cb )
+        {
+            var req = new uchar[] { GIsiClient.SIMAuth.MessageType.UPDATE_REQ, GIsiClient.SIMAuth.IndicationType.PIN,
+                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                            		0x00, 0x00, 0x00, 0x00 };
+
+            uchar* p = req;
+
+            GLib.Memory.copy( p+2, oldpin.data, oldpin.length );
+            GLib.Memory.copy( p+13, newpin.data, newpin.length );
+
+            ll.send_with_timeout( req, GIsiClient.SIMAuth.TIMEOUT, ( msg ) => {
+                if ( !msg.ok() || msg.id != GIsiClient.SIMAuth.MessageType.UPDATE_SUCCESS_RESP )
+                {
+                    cb( ErrorCode.INVALID_FORMAT ); 
+                }
+                cb( ErrorCode.OK );
+                changePin.callback();
+            } );
+            yield;
         }
     }
 
@@ -1260,10 +1286,10 @@ namespace GIsiComm
 
         public struct ISI_CallStatus
         {
+            uint8 id;
             GIsiClient.Call.Status status;
             uint8 ntype;
             string number;
-            bool incoming;
         }
 
         public signal void statusChanged( ISI_CallStatus status );
@@ -1305,34 +1331,39 @@ namespace GIsiComm
             RECONNECT_IND,
             */
 
-
-            /*
-            var ok = ll.ind_subscribe( GIsiClient.Call.MessageType.COMING_IND, onComingIndicationReceived );
-            if ( !ok )
-            {
-                warning( "Could not subscribe to CALL_COMING_IND" );
-            }
-            ok = ll.ind_subscribe( GIsiClient.Call.MessageType.MT_ALERT_IND, onMTAlertIndicationReceived );
-            if ( !ok )
-            {
-                warning( "Could not subscribe to CALL_MT_ALERT_IND" );
-            }
-            */
+            /* for now it should suffice if we subscribe only to the
+             * STATUS_IND as it gets sent for all kind of events */
             var ok = ll.ind_subscribe( GIsiClient.Call.MessageType.STATUS_IND, onStatusIndicationReceived );
             if ( !ok )
             {
                 warning( "Could not subscribe to CALL_STATUS_IND" );
-            }
-            ok = ll.ind_subscribe( GIsiClient.Call.MessageType.TERMINATED_IND, onTerminatedIndicationReceived );
-            if ( !ok )
-            {
-                warning( "Could not subscribe to CALL_TERMINATED_IND" );
             }
         }
 
         private ISI_CallStatus parseCallStatus( GIsi.Message msg )
         {
             var status = ISI_CallStatus();
+
+            /* call id's in isi go from 1 to 7 - upper four bits indicate other things:
+             *
+             * CALL_MODEM_ID_NONE                       0x00  -----000
+             * CALL_MODEM_ID_1                          0x01  -----001
+             * CALL_MODEM_ID_2                          0x02  -----010
+             * CALL_MODEM_ID_3                          0x03  -----011
+             * CALL_MODEM_ID_4                          0x04  -----100
+             * CALL_MODEM_ID_5                          0x05  -----101
+             * CALL_MODEM_ID_6                          0x06  -----110
+             * CALL_MODEM_ID_7                          0x07  -----111
+             * CALL_MODEM_ID_CONFERENCE                 0x10  ---1----
+             * CALL_MODEM_ID_WAITING                    0x20  --1-----
+             * CALL_MODEM_ID_HOLD                       0x40  -1------
+             * CALL_MODEM_ID_ACTIVE                     0x80  1-------
+             * CALL_MODEM_ID_ALL                        0xF0  1111----
+             *
+             */
+            status.id = msg.data[0] & 0x07;
+
+            debug( @"$(msg.id) for call with id $(status.id)" );
 
             for ( GIsi.SubBlockIter sbi = msg.subblock_iter_create( 2 ); sbi.is_valid(); sbi.next() )
             {
@@ -1353,10 +1384,10 @@ namespace GIsiComm
                         break;
 
                     case GIsiClient.Call.SubblockType.ORIGIN_ADDRESS:
+                    case GIsiClient.Call.SubblockType.DESTINATION_ADDRESS:
                         status.ntype = sbi.byte_at_position( 2 ) | 0x80;
-                        uint8 presentation = sbi.byte_at_position( 3 );
                         status.number = sbi.alpha_tag_at_position( sbi.byte_at_position( 5 ) * 2, 6 );
-                        debug( "call origin is type 0x%0X, presentation 0x%0X, number %s", status.ntype, presentation, status.number );
+                        debug( "call peer is type 0x%0X, number %s", status.ntype, status.number );
                         break;
 
                     default:
@@ -1374,18 +1405,11 @@ namespace GIsiComm
             this.statusChanged( parseCallStatus( msg ) );
         }
 
-        private void onTerminatedIndicationReceived( GIsi.Message msg )
-        {
-            message( @"$msg received" );
-            msg.dump();
-            //parseCallStatus( msg );
-        }
-
         //
         // public API
         //
 
-        public void initiateVoiceCall( string number, uint8 ntype, GIsiClient.Call.PresentationType presentation, VoidResultFunc cb )
+        public void initiateVoiceCall( string number, uint8 ntype, GIsiClient.Call.PresentationType presentation, IntResultFunc cb )
         {
             size_t addr_len = number.length;
             size_t sub_len = (6 + 2 * addr_len + 3) & ~3;
@@ -1418,10 +1442,10 @@ namespace GIsiComm
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
                 {
-                    cb( ErrorCode.INVALID_FORMAT );
+                    cb( ErrorCode.INVALID_FORMAT, 0 );
                     return;
                 }
-                cb( ErrorCode.OK );
+                cb( ErrorCode.OK, msg.data[0] );
             } );
         }
 
@@ -1451,6 +1475,8 @@ namespace GIsiComm
         public void answerVoiceCall( uint8 callid, VoidResultFunc cb )
         {
             var req = new uchar[] { GIsiClient.Call.MessageType.ANSWER_REQ, callid, 0x0 };
+
+            debug( @"sending ANSWER_REQ for call with id $callid" );
 
             ll.send( req, ( msg ) => {
                 if ( !msg.ok() )
@@ -1538,6 +1564,66 @@ namespace GIsiComm
 
                 cb( ErrorCode.OK );
             } );
+        }
+    }
+
+    /**
+     * @class SMS
+     *
+     * Short Messages Server
+     **/
+
+    public class SMS : AbstractBaseClient
+    {
+        private GIsiClient.SMS ll;
+
+        public SMS( GIsi.Modem modem )
+        {
+            client = ll = modem.sms_client_create();
+        }
+
+        protected override void onSubsystemIsReachable()
+        {
+            var ok = ll.ind_subscribe( GIsiClient.SMS.MessageType.MESSAGE_SEND_STATUS_IND, onSendStatusIndicationReceived );
+            if ( !ok )
+            {
+                warning( "Could not subscribe to MESSAGE_SEND_STATUS_IND" );
+            }
+#if 0
+
+            var req = new uint8[] {
+                GIsiClient.SMS.MessageType.GSM_CB_ROUTING_REQ,
+                GIsiClient.SMS.RoutingCommand.ROUTING_SET,
+                GIsiClient.SMS.RoutingMode.ALL,
+                GIsiClient.SMS.SubjectListType.CB_NOT_ALLOWED_IDS_LIST,
+                0x0 /* subject count */, 
+                0x0 /* language count */, 
+                0x0 /* cb range */
+            };
+
+            ll.send( req, ( msg ) => {
+                if ( !msg.ok )
+                {
+                    warning( "failed to setup CB routing" );
+                }
+                onSubsystemIsReachable.callback();
+            } );
+            yield;
+
+            var req2 = new uint8[] {
+                GIsiClient.SMS.MessageType.PP_ROUTING_REQ,
+                GIsiClient.SMS.RoutingCommand.ROUTING_SET,
+                0x01 /* one subblock */,
+                GIsiClient.SMS.SubblockType.GSM_ROUTING,
+                /* length */
+                /* routing type */
+#endif
+        }
+
+
+        private void onSendStatusIndicationReceived( GIsi.Message msg )
+        {
+            message( @"$msg received" );
         }
     }
 
