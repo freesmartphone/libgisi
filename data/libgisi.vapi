@@ -247,6 +247,10 @@ namespace GIsi
         //
         [CCode (cname = "g_isi_modem_get_userdata")]
         public void* get_userdata ();
+        [CCode (cname = "g_ist_modem_flags")]
+        public long get_flags ();
+        [CCode (cname = "g_isi_modem_set_flags")]
+        public void set_flags ( ulong flags );
         [CCode (cname = "g_isi_modem_index")]
         public uint index ();
         [CCode (cname = "g_isi_modem_send")]
@@ -541,6 +545,12 @@ namespace GIsi
         SMS,
         SS,
         WRAN
+    }
+
+    [CCode (cname = "gulong", cprefix = "GISI_MODEM_FLAG_", has_type_id = false, cheader_filename = "modem.h")]
+    public enum ModemFlag
+    {
+        USE_LEGACY_SUBSCRIBE
     }
 
     /**
