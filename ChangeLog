@@ -1,1 +1,432 @@
-See git log for individual changes. See NEWS for large-scale changes.
+2012-04-18  Simon Busch  <morphis@gravedo.de>
+
+	Release version 0.1.0
+
+	Don't distribute gzip archive but just bzip2 ones
+
+	Various automake related adjustments to pass `make distcheck`
+
+	Add missing but empty MAINTAINERS file (who is the maintainer of this atm?)
+
+	Update autogen.sh script
+
+	We provide version 1.0 of our API not 0.0 anymore
+
+2011-12-11  Klaus Kurzmann  <mok@fluxnetz.de>
+
+	add ModemFlag enum and set/get_flags to the vapi
+
+2011-12-11  Marcel Holtmann  <marcel@holtmann.org>
+
+	gisi: Update copyright information
+
+	gisi: Remove unused code for PN netlink address handling
+
+2011-12-11  Pekka Pessi  <Pekka.Pessi@nokia.com>
+
+	gisi: log normal responses in a less confusing way
+
+2011-12-11  Aki Niemi  <aki.niemi@nokia.com>
+
+	gisi: Fix PN_SIM reachability check decoding
+
+2011-12-11  Antti Paila  <antti.paila@nokia.com>
+
+	gisi: M6 coding style violation corrections
+
+2011-12-11  Aki Niemi  <aki.niemi@nokia.com>
+
+	gisi: Make cursor a 16bit unsigned
+	This is to match subblock length when long header format is in use.
+
+2011-12-11  Antti Paila  <antti.paila@nokia.com>
+
+	gisi: Consumer functions for ISI message iterator
+
+2011-12-11  Aki Niemi  <aki.niemi@nokia.com>
+
+	gisi: Refactor indication subscriptions
+	Handle different message types for IND subscriptions based on the
+	presence of the GISI_MODEM_FLAG_USE_LEGACY_SUBSCRIBE flag. This
+	enables building modem plugins for modems that only support one or the
+	other available IND types.
+
+	Based on patches from:
+	Jessica Nilsson <jessica.j.nilsson@stericsson.com>
+
+	gisi: Minor style fixes
+
+	gisi: Refactor modem to use remote device
+
+	gisi: Add new API for setting modem remote device
+
+	gisi: Add new PhoNet device ID for STE
+
+	gisi: Add checks for NULL
+
+	gisi: Add API for setting modem flags
+
+	gisi: Refactor netlink
+	Don't use typedefs for enum types, and move PhoNet device enum over to
+	common.h.
+
+2011-06-02  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	Merge branch 'master' of git.freesmartphone.org:libgisi
+
+	remove posix-ext, which has now been applied upstream. bump Vala requirement to 0.12.1
+
+2011-05-13  Klaus Kurzmann  <mok@fluxnetz.de>
+
+	start to implement the SMS resource
+
+	gisicomm: add changePin
+
+	gisicomm: parse DESTINATION_ADDRESS subblocks too for call status indications
+
+	gisicomm: duh, get the call id from the correct byte
+
+2011-05-12  Klaus Kurzmann  <mok@fluxnetz.de>
+
+	gisicomm: remove unused termination indication handler and comment call ids
+
+	gisicomm: send the call id in the callback when initiating a voice call
+
+	gisicomm: remove unneeded incoming field of ISI_CallStatus
+
+2011-05-10  Klaus Kurzmann  <mok@fluxnetz.de>
+
+	gisicomm: give CallStatus an id and set it in call status indications
+
+2011-05-08  Klaus Kurzmann  <mok@fluxnetz.de>
+
+	gisicomm: don't go to MTC normal state in poweron
+
+	gisicomm: don't segfault when we get just one or even no dns in the context activate indication
+
+	posix-ext.vapi: make return value of inet_ntop unowned
+
+2011-05-06  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	vapi: fix remaining bindings of functions using iovectors
+
+	vapi: fix usage of Posix.iovector
+
+2011-05-05  Klaus Kurzmann  <mok@fluxnetz.de>
+
+	add vim tags for correct indentation with 4 spaces
+
+2011-05-04  Klaus Kurzmann  <mok@fluxnetz.de>
+
+	gisicomm: don't use vsend for GPDS.CONTEXT_CONFIGURE_REQ
+
+2011-05-04  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	gisicomm: pipe.set_userdata does not own/ref its argument, save it so that it doesn't get delete prematurely
+
+	gisicomm: wait until Pipe has been successfully created before continuing to activate
+
+	gisicomm: subscribe for GPRS context indications sooner to avoid a possible race condition
+
+	gisicomm: fix dns handling in PDP context activated callback
+
+	gisicomm: fix PDP.activate(), giving the messages sent to the modem an actual chance to be processed
+
+	libgisi.vapi: add some more comments
+
+2011-05-03  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	gisicomm: fix PDP.deactivate
+
+	gisicomm: PDP.activate: no need to wait for the callback to be called
+
+	libgisi: fix definition of Pipe.create
+
+2011-05-03  Klaus Kurzmann  <mok@fluxnetz.de>
+
+	gisicomm: make gpdsd.activate async and use yield correctly
+
+	gisicomm: gpdsd: check if creating the pipe worked out
+
+2011-05-02  Klaus Kurzmann  <mok@fluxnetz.de>
+
+	gisicomm: allocate dst for inet_ntop with new
+
+	gisicomm: GPDP handle context activate indication to get ip/dns
+
+	gisicomm: move creating pep/pipe to GPDS.activate
+
+	add vapi to extend Posix with inet_ntop
+
+2011-05-01  Klaus Kurzmann  <mok@fluxnetz.de>
+
+	gisicomm: implement (de-)activating the GPRS context
+
+	gisicomm: add an align4 helper
+
+	gisicomm: make clients remember their object id
+
+	gisi: add missing includes for pep.h and pipe.h
+	Thanks to morphis for finding out :)
+
+	vapi: fix PEP_TYPE_GPRS and WRAN defines
+
+	vapi: give vsend a Posix.iovector and the length of it as parameters
+
+	gisicomm: eliminate one more ErrorCode cast
+
+	libgisi.vapi: PEP_TYPE_GPRS is no resource
+
+2011-04-30  Klaus Kurzmann  <mok@fluxnetz.de>
+
+	gisicomm: don't cast msg.error to ErrorCode
+
+2011-04-30  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	gisicomm: speed up the subsystem initialization
+
+2011-04-30  Klaus Kurzmann  <mok@fluxnetz.de>
+
+	add a stub for the GPDS client
+
+2011-04-27  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	gisicomm: connect to net subsystem on startup
+
+2011-04-21  Klaus Kurzmann  <mok@fluxnetz.de>
+
+	make the epoc info actually do something
+
+	ignore the netlink going down on startup
+
+	implement the EpocInfo server
+
+2011-04-20  Klaus Kurzmann  <mok@fluxnetz.de>
+
+	gisicomm: don't write to /dev/cmt - add a signal for netlink changes instead
+
+2011-04-13  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	gisicomm: add debug for cmt_rst_rq resetting, open RDWR
+
+2011-04-12  Klaus Kurzmann  <mok@fluxnetz.de>
+
+	gisicomm: cmt_rst_rq is a directory... write to value in there instead :P
+
+	gisicomm: duh... lower - not the contrary
+
+	gisicomm: lower cmt_rst_rq when the link comes up
+
+2011-04-12  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	gisicomm: add GSS and SS high level clients
+
+	add SS (Subscriber Services) client
+
+	add GSS (General Stack Server) client
+
+	gisicomm: misc. additions in startup sequence
+
+2011-04-05  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	bump vala requirement to 0.12, certain 0.11.x versions generate broken code
+
+2011-04-02  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	gisicomm: add Network.RegisterManual
+
+2011-03-03  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	gisicomm: tweak startup sequence
+
+2011-02-26  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	gisicomm: send registration status as signal
+
+2011-02-25  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	gisicomm: don't try to read an operator name if we're not camped
+
+2011-02-24  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	gisicomm: link against gio
+
+2011-02-23  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	vapi: document some of the remaining static functions
+
+	gisicomm: also parse registration name in status indication (NOTE: SB NET_REG_INFO_COMMON conatins the actual network name, which might be diffferent from the one given in SB NET_GSM_REG_NETWORK_INFO)
+
+	document network subblock type 0xE3
+
+2011-02-20  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	gisicomm: DEBUG only change to find out why the startup sequence crashes on device, but not with forwarding
+
+2011-02-17  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	sendisi: remove debug message with copyright and disclaimer
+
+2011-02-15  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	gisicomm: startup: give MTC more time to come up
+
+	new tool: sendisi, allows sending arbitrary commands over ISI
+
+2011-02-14  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	tests: add test pinging all available resource servers
+
+2011-02-13  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	gisicomm: add generic send function in AbstractClient for debugging purposes
+
+	gisicomm: add one more phase to bootstrapping
+
+	gisicomm: refactor MTC bootstrapping logic
+
+	gisicomm: add MTC client
+
+	vapi: add MTC (modem terminal control?) constants
+
+2011-02-12  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	gisicomm: add sendTonesOnVoiceCall
+
+	gisicomm: add controlVoiceCall
+
+	gisicomm: add answerVoiceCall
+
+	gisicomm: add releaseVoicecall
+
+	gisicomm: iterate through RAT_IND message
+
+	fix license headers in vapi and vala files; this library is GPLv2
+
+	gisicomm: register for NITZ indications, parse, and send a signal to all interested listeners
+
+2011-02-11  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	vapi: fix a couple of values
+
+	gisicomm: implement initiateVoiceCall
+
+	gisicomm: parse call status message and send signal
+
+2011-02-10  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	gisicomm: add Call client, listen to COMING and MT_ALERT indications
+
+	vapi: add call subsystem constants
+
+	gisicomm: implement list providers
+
+2011-02-09  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	gisicomm: implement network.RegisterAutomatic()
+
+	gisicomm: gather access technology and strength
+
+	gisicomm: start with Network.queryStatus
+
+	gisicomm: honor that SPN can be missing from the SIM
+
+	gisicomm: fix readHPLMN
+
+2011-02-07  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	gisicomm: subscribe to SIM Auth indications
+
+	gisicomm: add SIMAuth.sendPin
+
+	gisicomm: add high level modemaccess class
+
+2011-02-06  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	clients: also install simauth.h
+
+	gisicomm: add glib-2.0 to vala-dependencies
+
+	data: fix Makefile
+
+	add .pc file for gisicomm-0.0
+
+	parse GIsiClient.Network.SubblockType.REG_INFO_COMMON and GIsiClient.Network.SubblockType.GSM_REG_INFO
+
+	parse undocumented operation name subblock out of network status indication
+
+	vapi: add enumerations for Network client subsystem
+
+	more work on reading SPN, still doesn't work though
+
+	implement SIM.readIMSI
+
+	gisicomm: refactor clients by inserting an AbstractBaseClient superclass
+
+2011-02-05  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	implement gathering SIM status
+
+	add sim auth definitions
+
+	add simauth.h courtesy libisi
+
+	add Sebastian Reichel to authors
+
+2011-02-02  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	add some credits and start with the readme
+
+	gisicomm: add reading IMEI and software version
+
+2011-02-01  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	gisicomm: add readModel
+
+	gisicomm: simplify readManufacturer, add a parsing function for simple strings
+
+	vapi: async functions should own the NotifyFunc, otherwise we lose the ability to use closures
+
+	gisicomm: create container for ready-to-call methods
+
+	vapi: change some of the accessors to properties
+
+	vapi: fix subblock iter
+
+	vapi: add SIM and INFO client constants
+
+2011-01-31  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	vapi: add PhonetSubsystem enum, populate Message class tests: add SIM subsystem reachability test
+
+	clients: new directory; containing the ISI client resource files
+
+	tests: wait until netlink state has changed before proceeding to the next state
+
+	test: add modemtester class
+
+	vapi: resort, add phonet netlink functions to modem class
+
+	vapi: create proper modem constructors
+
+	add libgisi.h and add the first couple of fixes to make a test program compile
+
+	add infrastructure for tests
+
+2011-01-25  Michael 'Mickey' Lauer  <mickey@vanille-media.de>
+
+	this project needs C99, so check for it
+
+	add .gitignore
+
+2011-01-23  Klaus Kurzmann  <mok@fluxnetz.de>
+
+	add vapigen generated libgisi.vapi
+
+	add missing include in gisi/socket.h
+
+	remove -std=c99 from CFLAGS
+
+	remove _GNU_SOURCE redefinition
+
+	initial import of ofono gisi code
