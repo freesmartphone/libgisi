@@ -13,3 +13,6 @@ libgisiinclude_DATA = \
   simauth.h \
   sms.h \
   ss.h
+
+EXTRA_DIST = \
+	$(libgisiinclude_DATA)

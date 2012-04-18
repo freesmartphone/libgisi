@@ -17,6 +17,7 @@ INCLUDES = \
 	-I$(top_srcdir)/gisi \
 	-I$(top_srcdir)/clients \
 	-I$(top_srcdir)/gisicomm \
+	-I$(top_srcdir) \
 	$(GLIB_CFLAGS) \
 	$(GLIB_EXTRA_LIBS) \
 	$(NULL)
@@ -40,12 +41,13 @@ $(BUILT_SOURCES): $(sendisi_VALASOURCES)
 sendisi_LDADD = \
 	$(GLIB_LIBS) \
 	$(GLIB_EXTRA_LIBS) \
-	../gisi/libgisi.la \
-	../gisicomm/libgisicomm.la \
+	$(top_builddir)/gisi/libgisi.la \
+	$(top_builddir)/gisicomm/libgisicomm.la \
 	$(NULL)
 
 EXTRA_DIST += \
 	$(sendisi_VALASOURCES) \
+	$(sendisi_SOURCES) \
 	$(BUILT_SOURCES) \
 	$(NULL)
 

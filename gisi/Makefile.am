@@ -2,6 +2,7 @@ NULL =
 
 AM_CFLAGS = \
 	    $(GLIB_CFLAGS) \
+		-I$(top_srcdir) \
 	    $(NULL)
 lib_LTLIBRARIES = \
 		  libgisi.la \
@@ -40,3 +41,4 @@ libgisiinclude_DATA = \
                     socket.h \
 		    $(NULL)
 
+EXTRA_DIST = $(libgisiinclude_DATA)

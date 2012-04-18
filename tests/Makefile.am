@@ -6,6 +6,7 @@ AM_CFLAGS = \
 	-I$(top_srcdir)/gisi \
 	-I$(top_srcdir)/clients \
 	-I$(top_srcdir)/gisicomm \
+	-I$(top_srcdir) \
 	$(GLIB_CFLAGS) \
 	$(GLIB_EXTRA_CFLAGS) \
 	$(NULL)
@@ -26,13 +27,13 @@ noinst_PROGRAMS = $(TEST_PROGS)
 progs_ldadd = \
 	$(GLIB_LIBS) \
 	$(GLIB_EXTRA_LIBS) \
-	../gisi/libgisi.la \
-	../gisicomm/libgisicomm.la
+	$(top_builddir)/gisi/libgisi.la \
+	$(top_builddir)/gisicomm/libgisicomm.la
 
 #
 # ping test
 #
-TEST_PROGS += testping
+# TEST_PROGS += testping
 testping_VALASOURCES = testping.vala
 testping_SOURCES = testping.c
 $(testping_SOURCES): $(testping_VALASOURCES)
@@ -44,7 +45,7 @@ EXTRA_DIST += $(testping_VALASOURCES)
 #
 # servers test
 #
-TEST_PROGS += testservers
+# TEST_PROGS += testservers
 testservers_VALASOURCES = testservers.vala
 testservers_SOURCES = testservers.c
 $(testservers_SOURCES): $(testservers_VALASOURCES)
