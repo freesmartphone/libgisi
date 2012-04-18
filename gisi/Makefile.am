@@ -24,7 +24,7 @@ libgisi_la_LIBADD = \
 		    $(NULL)
 
 
-libgisiincludedir = $(includedir)/gisi-0.0/gisi
+libgisiincludedir = $(includedir)/gisi-1.0/gisi
 libgisiinclude_DATA = \
                     client.h \
                     common.h \

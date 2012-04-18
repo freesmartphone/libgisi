@@ -11,7 +11,7 @@ VALAC_ARGS = \
 	--pkg glib-2.0 \
 	--pkg gio-2.0 \
 	--pkg libgisi \
-	--pkg gisicomm-0.0
+	--pkg gisicomm-1.0
 
 INCLUDES = \
 	-I$(top_srcdir)/gisi \

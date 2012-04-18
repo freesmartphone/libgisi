@@ -10,4 +10,4 @@ Description: lowlevel N900 modem access library
 Version: @VERSION@
 Requires: glib-2.0
 Libs: -lgisi -L${libdir}
-CFlags: -I${includedir}/gisi-0.0 -I${includedir}/gisi-0.0/gisi
+CFlags: -I${includedir}/gisi-1.0 -I${includedir}/gisi-1.0/gisi

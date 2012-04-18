@@ -1,4 +1,4 @@
-libgisiincludedir = $(includedir)/gisi-0.0
+libgisiincludedir = $(includedir)/gisi-1.0
 libgisiinclude_DATA = \
   \
   clients.h \
@@ -6,7 +6,7 @@ libgisiinclude_DATA = \
   call.h \
   gpds.h \
   gss.h \
-  info.h \ 
+  info.h \
   mtc.h \
   network.h \
   sim.h \

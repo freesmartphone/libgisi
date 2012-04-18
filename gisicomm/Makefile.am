@@ -20,7 +20,7 @@ VALAC_ARGS = \
 	--pkg libgisi \
 	--pkg posix \
 	--header gisicomm.h \
-	--library gisicomm-0.0
+	--library gisicomm-1.0
 
 #if WANT_DEBUG
 #VALAC_ARGS += -g -D DEBUG
@@ -42,11 +42,11 @@ libgisicomm_la_SOURCES = \
 	$(libgisicomm_la_VALASOURCES:.vala=.c) \
 	$(NULL)
 
-gisicommincludedir = $(includedir)/gisi-0.0
+gisicommincludedir = $(includedir)/gisi-1.0
 
 gisicomminclude_HEADERS = gisicomm.h
 
-gisicomm-0.0.vapi .vala.stamp: $(libgisicomm_la_VALASOURCES)
+gisicomm-1.0.vapi .vala.stamp: $(libgisicomm_la_VALASOURCES)
 	$(VALAC) -C $(VALAC_ARGS) $^
 	touch $@
 
@@ -58,13 +58,13 @@ libgisicomm_la_LIBADD = \
 vapidir = $(datadir)/vala/vapi
 
 dist_vapi_DATA = \
-	gisicomm-0.0.vapi \
-	gisicomm-0.0.deps \
+	gisicomm-1.0.vapi \
+	gisicomm-1.0.deps \
 	$(NULL)
 
 EXTRA_DIST += \
 	$(libgisicomm_la_VALASOURCES) \
-	gisicomm-0.0.vapi \
+	gisicomm-1.0.vapi \
 	$(BUILT_SOURCES) \
 	$(NULL)
 
